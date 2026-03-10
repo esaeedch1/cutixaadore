@@ -1,0 +1,285 @@
+.accountPage {
+    min-height: 100vh;
+    background: var(--background);
+}
+
+.header {
+    height: 80px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    width: 100%;
+}
+
+.header .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nav {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.navLink {
+    background: transparent;
+    border: none;
+    font-family: inherit;
+    font-size: 0.95rem;
+    cursor: pointer;
+    color: var(--foreground);
+    opacity: 0.8;
+}
+
+.logoutBtn {
+    background: rgba(255, 77, 77, 0.1);
+    color: #ff4d4d;
+    border: none;
+    padding: 0.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.main {
+    padding: 4rem 0;
+}
+
+.welcomeSection {
+    margin-bottom: 3rem;
+}
+
+.welcomeSection h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+}
+
+.welcomeSection p {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+}
+
+.accountGrid {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 3rem;
+}
+
+.card,
+.menuCard {
+    padding: 2rem;
+    border-radius: 20px;
+    margin-bottom: 1.5rem;
+}
+
+.statItem {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    margin-bottom: 1.5rem;
+}
+
+.statItem:last-child {
+    margin-bottom: 0;
+}
+
+.statItem h4 {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    margin-bottom: 0.2rem;
+}
+
+.statItem p {
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.goldIcon {
+    color: var(--gold-matte);
+}
+
+.menuItem {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 0;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    font-family: inherit;
+    font-size: 0.95rem;
+    color: var(--foreground);
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.menuItem:last-child {
+    border-bottom: none;
+}
+
+.menuItem:hover {
+    padding-left: 0.5rem;
+    color: var(--gold-matte);
+}
+
+.sectionTitle {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.orderList {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.orderCard {
+    padding: 2rem;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+}
+
+.orderHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.orderMeta {
+    display: flex;
+    flex-direction: column;
+}
+
+.orderId {
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.orderDate {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.statusBadge {
+    padding: 0.4rem 1rem;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.pending {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.shipped {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.delivered {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+}
+
+.paid {
+    background: rgba(197, 160, 89, 0.1);
+    color: var(--gold-matte);
+}
+
+.orderBody {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.orderInfo p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.4rem;
+}
+
+.orderInfo h4 {
+    font-size: 1.5rem;
+    color: var(--gold-matte);
+}
+
+.trackingBox {
+    flex: 0 0 350px;
+}
+
+.trackingHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+.trackProgress {
+    position: relative;
+}
+
+.progressLine {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+}
+
+.progressFill {
+    height: 100%;
+    background: var(--gold-shining);
+    border-radius: 2px;
+}
+
+.progressSteps {
+    display: flex;
+    justify-content: space-between;
+}
+
+.step {
+    width: 24px;
+    height: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+}
+
+@media (max-width: 900px) {
+    .accountGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .orderBody {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2rem;
+    }
+
+    .trackingBox {
+        width: 100%;
+        flex: 1;
+    }
+}

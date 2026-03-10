@@ -1,0 +1,211 @@
+'use client';
+
+import React, { useState } from 'react';
+import {
+    UserPlus,
+    Shield,
+    Trash2,
+    Edit,
+    Lock,
+    CheckCircle2
+} from 'lucide-react';
+import styles from '../dashboard.module.css';
+
+interface UserRole {
+    id: string;
+    name: string;
+    email: string;
+    role: 'Owner' | 'Admin' | 'Manager' | 'DEO' | 'Salesman';
+    status: 'Active' | 'Pending' | 'Inactive';
+}
+
+const rolesHierarchy = [
+    { id: 'Owner', name: 'Owner', permissions: ['All Access', 'Role Management', 'System Settings'] },
+    { id: 'Admin', name: 'Admin', permissions: ['All Access (except Owner Removal)', 'Product Mgmt', 'User Mgmt'] },
+    { id: 'Manager', name: 'Manager', permissions: ['Product Management', 'Assigned Roles', 'Invoices'] },
+    { id: 'DEO', name: 'DEO', permissions: ['Inventory Management', 'Product Entry'] },
+    { id: 'Salesman', name: 'Salesman', permissions: ['Invoice Access Only'] },
+];
+
+export default function RoleManagement() {
+    const [users, setUsers] = useState<UserRole[]>([
+        { id: '1', name: 'Super Owner', email: 'owner@cutixa.com', role: 'Owner', status: 'Active' },
+        { id: '2', name: 'Sarah Admin', email: 'admin@cutixa.com', role: 'Admin', status: 'Active' },
+        { id: '3', name: 'Mike Manager', email: 'mike@cutixa.com', role: 'Manager', status: 'Active' },
+        { id: '4', name: 'John Data', email: 'john@cutixa.com', role: 'DEO', status: 'Pending' },
+    ]);
+
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingUser, setEditingUser] = useState<UserRole | null>(null);
+
+    const handleSave = (e: React.FormEvent) => {
+        e.preventDefault();
+        const form = e.target as HTMLFormElement;
+        const formData = new FormData(form);
+
+        const updatedUser: UserRole = {
+            id: editingUser?.id || Math.random().toString(36).substr(2, 9),
+            name: formData.get('userName') as string,
+            email: formData.get('userEmail') as string,
+            role: formData.get('userRole') as any,
+            status: formData.get('userStatus') as any || 'Active',
+        };
+
+        if (editingUser) {
+            setUsers(users.map(u => u.id === editingUser.id ? updatedUser : u));
+        } else {
+            setUsers([...users, updatedUser]);
+        }
+
+        setIsModalOpen(false);
+        setEditingUser(null);
+    };
+
+    const handleDelete = (id: string) => {
+        if (confirm('Remove this staff member?')) {
+            setUsers(users.filter(u => u.id !== id));
+        }
+    };
+
+    const handleEdit = (user: UserRole) => {
+        setEditingUser(user);
+        setIsModalOpen(true);
+    };
+
+    return (
+        <div className={styles.rolePanel}>
+            <div className={styles.statsGrid}>
+                {rolesHierarchy.map(role => (
+                    <div key={role.id} className={`${styles.statCard} glass`}>
+                        <Shield size={20} className={styles.statIcon} />
+                        <h4>{role.name}</h4>
+                        <p>{users.filter(u => u.role === role.id).length} Users</p>
+                    </div>
+                ))}
+            </div>
+
+            <div className={styles.controls}>
+                <h3>Staff Directory</h3>
+                <button className={styles.primaryBtn} onClick={() => { setEditingUser(null); setIsModalOpen(true); }}>
+                    <UserPlus size={18} /> Invite Staff member
+                </button>
+            </div>
+
+            <div className={`${styles.tableContainer} glass`}>
+                <table className={styles.table}>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {users.map((user) => (
+                            <tr key={user.id} className={styles.productRow}>
+                                <td>{user.name}</td>
+                                <td>{user.email}</td>
+                                <td><span className={styles.statusBadge}>{user.role}</span></td>
+                                <td>
+                                    <span style={{ color: user.status === 'Active' ? '#22c55e' : '#f59e0b', fontSize: '0.85rem', fontWeight: 600 }}>
+                                        {user.status}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div className={styles.rowActions}>
+                                        <button className={styles.editBtn} onClick={() => handleEdit(user)}><Edit size={16} /></button>
+                                        {user.role !== 'Owner' && (
+                                            <button className={styles.deleteBtn} onClick={() => handleDelete(user.id)}><Trash2 size={16} /></button>
+                                        )}
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+
+            {isModalOpen && (
+                <div className={styles.modalOverlay}>
+                    <div className={`${styles.modalContent} glass`}>
+                        <div className={styles.modalHeader}>
+                            <h2 className="brand-name">{editingUser ? 'Edit Staff member' : 'Invite Staff member'}</h2>
+                            <button onClick={() => setIsModalOpen(false)} className={styles.closeBtn}>×</button>
+                        </div>
+                        <form className={styles.productForm} onSubmit={handleSave}>
+                            <div className={styles.formGroup}>
+                                <label>Full Name</label>
+                                <input name="userName" type="text" className={styles.input} defaultValue={editingUser?.name} required />
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label>Email Address</label>
+                                <input name="userEmail" type="email" className={styles.input} defaultValue={editingUser?.email} required />
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label>Assigned Role</label>
+                                <select name="userRole" className={styles.select} defaultValue={editingUser?.role}>
+                                    {rolesHierarchy.map(r => (
+                                        <option key={r.id} value={r.id}>{r.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            {editingUser && (
+                                <div className={styles.formGroup}>
+                                    <label>Account Status</label>
+                                    <select name="userStatus" className={styles.select} defaultValue={editingUser?.status}>
+                                        <option value="Active">Active</option>
+                                        <option value="Pending">Pending</option>
+                                        <option value="Inactive">Inactive</option>
+                                    </select>
+                                </div>
+                            )}
+                            <div className={styles.modalFooter}>
+                                <button type="button" className={styles.secondaryBtn} onClick={() => setIsModalOpen(false)}>Cancel</button>
+                                <button type="submit" className={styles.primaryBtn}>Save Changes</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            <div className={styles.formSection} style={{ marginTop: '3rem' }}>
+                <h3>Permission Matrix</h3>
+                <div className={styles.tableContainer} style={{ background: 'var(--surface)' }}>
+                    <table className={styles.table}>
+                        <thead>
+                            <tr>
+                                <th>Feature</th>
+                                <th>Owner</th>
+                                <th>Admin</th>
+                                <th>Manager</th>
+                                <th>DEO</th>
+                                <th>Salesman</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {[
+                                'Product Management',
+                                'Inventory Controls',
+                                'Role Management',
+                                'Financial Reports',
+                                'Payment Settings',
+                                'Invoice Access'
+                            ].map(feature => (
+                                <tr key={feature}>
+                                    <td>{feature}</td>
+                                    <td><CheckCircle2 size={16} color="var(--gold-matte)" /></td>
+                                    <td><CheckCircle2 size={16} color="var(--gold-matte)" /></td>
+                                    <td>{['Product Management', 'Invoice Access'].includes(feature) ? <CheckCircle2 size={16} color="var(--gold-matte)" /> : <Lock size={16} opacity={0.3} />}</td>
+                                    <td>{['Product Management', 'Inventory Controls'].includes(feature) ? <CheckCircle2 size={16} color="var(--gold-matte)" /> : <Lock size={16} opacity={0.3} />}</td>
+                                    <td>{['Invoice Access'].includes(feature) ? <CheckCircle2 size={16} color="var(--gold-matte)" /> : <Lock size={16} opacity={0.3} />}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    );
+}

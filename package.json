@@ -9,12 +9,17 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "lucide-react": "^0.576.0",
     "next": "16.1.6",
+    "papaparse": "^5.5.3",
+    "qrcode.react": "^4.2.0",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "recharts": "^3.7.0"
   },
   "devDependencies": {
     "@types/node": "^20",
+    "@types/papaparse": "^5.5.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",

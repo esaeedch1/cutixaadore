@@ -1,42 +1,160 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Default: Dark Theme */
+  --background: #0a0a0a;
+  --foreground: #ffffff;
+  --surface: #121212;
+  --border: #262626;
+
+  /* Branding Colors - strictly for brand name and tagline */
+  --gold-shining: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+  --gold-matte: #c5a059;
+
+  /* Text Colors (Adaptive) */
+  --text-primary: #ffffff;
+  --text-secondary: #94a3b8;
+  --text-accent: var(--gold-matte);
+
+  /* Transitions */
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color-scheme: dark;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+[data-theme='light'] {
+  --background: #ffffff;
+  --foreground: #1a1a1a;
+  --surface: #f8f9fa;
+  --border: #e2e8f0;
+  --text-primary: #1a1a1a;
+  --text-secondary: #64748b;
+  color-scheme: light;
+}
+
+[data-theme='light-grey'] {
+  --background: #e5e7eb;
+  --foreground: #111827;
+  --surface: #f3f4f6;
+  --border: #d1d5db;
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  color-scheme: light;
+}
+
+/* Global Layout */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
 }
 
 html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
-}
-
-body {
+  min-height: 100vh;
+  background-color: var(--background);
   color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
-}
-
-a {
+/* All UI elements inherit theme foreground color */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+span,
+a,
+label,
+li,
+td,
+th {
   color: inherit;
-  text-decoration: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+button,
+input,
+select,
+textarea {
+  color: var(--foreground);
+  font-family: inherit;
+}
+
+/* Links */
+a {
+  text-decoration: none;
+  color: var(--foreground);
+}
+
+/* Exception for branding and specific accents */
+.brand-name {
+  background: var(--gold-shining);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent !important;
+  font-family: 'Monotype Corsiva', 'Playfair Display', serif;
+  font-weight: 700;
+  text-shadow: 0 0 10px rgba(191, 149, 63, 0.3);
+}
+
+.tagline {
+  color: var(--gold-matte) !important;
+  font-family: 'Tahoma', 'Arial', sans-serif;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.gold-accent {
+  color: var(--gold-matte) !important;
+}
+
+
+/* Utility Classes */
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+[data-theme='light'] .glass,
+[data-theme='light-grey'] .glass {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(12px);
+}
+
+/* Adaptive inputs/selects for theme */
+input,
+select,
+textarea {
+  background-color: var(--surface);
+  border-color: var(--border);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gold-matte);
+  border-radius: 4px;
 }
