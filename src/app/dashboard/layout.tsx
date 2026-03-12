@@ -13,7 +13,12 @@ import {
     ChevronRight,
     Menu,
     X,
-    FileText
+    FileText,
+    Share2,
+    Video,
+    Globe,
+    Warehouse,
+    ShoppingBag
 } from 'lucide-react';
 import styles from './dashboard.module.css';
 
@@ -24,24 +29,31 @@ export default function DashboardLayout({
 }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [role, setRole] = useState<string | null>(null);
+    const [userName, setUserName] = useState<string | null>(null);
     const pathname = usePathname();
     const router = useRouter();
 
     useEffect(() => {
         const savedRole = localStorage.getItem('userRole');
+        const savedName = localStorage.getItem('userName');
         if (!savedRole && !pathname.includes('/login')) {
             router.push('/dashboard/login');
         }
         setRole(savedRole);
+        setUserName(savedName);
     }, [pathname, router]);
 
     const navItems = [
-        { name: 'Overview', href: '/dashboard', icon: LayoutDashboard, roles: ['Owner', 'Admin', 'Manager', 'DEO', 'Salesman'] },
-        { name: 'Products', href: '/dashboard/products', icon: Package, roles: ['Owner', 'Admin', 'Manager', 'DEO'] },
-        { name: 'Role Management', href: '/dashboard/roles', icon: Users, roles: ['Owner', 'Admin'] },
-        { name: 'Payments', href: '/dashboard/payments', icon: CreditCard, roles: ['Owner', 'Admin'] },
-        { name: 'Invoices', href: '/dashboard/invoices', icon: FileText, roles: ['Owner', 'Admin', 'Manager', 'Salesman'] },
-        { name: 'Page Config', href: '/dashboard/pages', icon: Settings, roles: ['Owner', 'Admin'] },
+        { name: 'Overview', href: '/dashboard', icon: LayoutDashboard, roles: ['Developer', 'Owner', 'Admin', 'Manager', 'DEO', 'Salesman'] },
+        { name: 'Products', href: '/dashboard/products', icon: Package, roles: ['Developer', 'Owner', 'Admin', 'Manager', 'DEO'] },
+        { name: 'Inventory', href: '/dashboard/inventory', icon: Warehouse, roles: ['Developer', 'Owner', 'Admin', 'Manager', 'DEO'] },
+        { name: 'Role Management', href: '/dashboard/roles', icon: Users, roles: ['Developer', 'Owner', 'Admin'] },
+        { name: 'Orders', href: '/dashboard/orders', icon: ShoppingBag, roles: ['Developer', 'Owner', 'Admin', 'Manager', 'DEO', 'Salesman'] },
+        { name: 'Payments', href: '/dashboard/payments', icon: CreditCard, roles: ['Developer', 'Owner', 'Admin'] },
+        { name: 'Invoices', href: '/dashboard/invoices', icon: FileText, roles: ['Developer', 'Owner', 'Admin', 'Manager', 'Salesman'] },
+        { name: 'Page Config', href: '/dashboard/pages', icon: Settings, roles: ['Developer', 'Owner', 'Admin'] },
+        { name: 'Courses', href: '/dashboard/courses', icon: Video, roles: ['Developer', 'Owner', 'Admin', 'Manager'] },
+        { name: 'Social Media', href: '/dashboard/social', icon: Share2, roles: ['Developer', 'Owner', 'Admin', 'Manager'] },
     ];
 
     const filteredNav = navItems.filter(item => role && item.roles.includes(role));
@@ -58,7 +70,7 @@ export default function DashboardLayout({
             {/* Sidebar */}
             <aside className={`${styles.sidebar} ${isSidebarOpen ? styles.sidebarOpen : styles.sidebarClosed} glass`}>
                 <div className={styles.sidebarHeader}>
-                    <h2 className="brand-name">CutiXa</h2>
+                    <h2 className="brand-name">CutiXa Adore</h2>
                     <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className={styles.toggleBtn}>
                         {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
                     </button>
@@ -86,7 +98,7 @@ export default function DashboardLayout({
                     <div className={styles.userInfo}>
                         {isSidebarOpen && (
                             <div className={styles.userText}>
-                                <p className={styles.userName}>Executive Portal</p>
+                                <p className={styles.userName}>{userName || 'Executive Portal'}</p>
                                 <p className={styles.userRole}>{role}</p>
                             </div>
                         )}

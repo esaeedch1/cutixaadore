@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 type Language = 'English' | 'Urdu' | 'Arabic' | 'Chinese' | 'Sri Lankan' | 'Nepali' | 'Malaysian' | 'Indonesian';
 
@@ -161,6 +161,19 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
     const [language, setLanguage] = useState<Language>('English');
+
+    useEffect(() => {
+        if (language === 'Urdu') {
+            document.body.classList.add('lang-urdu');
+            document.body.setAttribute('dir', 'rtl');
+        } else if (language === 'Arabic') {
+            document.body.classList.remove('lang-urdu');
+            document.body.setAttribute('dir', 'rtl');
+        } else {
+            document.body.classList.remove('lang-urdu');
+            document.body.setAttribute('dir', 'ltr');
+        }
+    }, [language]);
 
     const t = (key: string) => {
         return translations[language][key] || key;

@@ -11,12 +11,19 @@ export default function OwnerLogin() {
 
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
-        // Simulate login
-        if (email === 'admin@cutixa.com' && password === 'admin123') {
+        // Super User Login (Developer)
+        if (email === 'esaeedch@gmail.com' && password === 'Sa3022022#@!') {
+            localStorage.setItem('userRole', 'Developer');
+            localStorage.setItem('userName', 'Saeed Ahmad');
+            router.push('/dashboard');
+        }
+        // Standard Owner Login
+        else if (email === 'admin@cutixa.com' && password === 'admin123') {
             localStorage.setItem('userRole', 'Owner');
+            localStorage.setItem('userName', 'Executive Owner');
             router.push('/dashboard');
         } else {
-            alert('Invalid credentials. (Try admin@cutixa.com / admin123)');
+            alert('Invalid credentials. Access Denied.');
         }
     };
 

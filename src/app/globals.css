@@ -1,11 +1,28 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
 
+/* Urdu Font Support */
+@font-face {
+  font-family: 'Jameel Noori Nastaleeq';
+  src: url('https://cdn.jsdelivr.net/gh/nafeesvision/jameel-noori-nastaleeq@master/Jameel%20Noori%20Nastaleeq.ttf');
+}
+
 :root {
   /* Default: Dark Theme */
   --background: #0a0a0a;
   --foreground: #ffffff;
   --surface: #121212;
   --border: #262626;
+
+  /* Fonts - Dynamic via JS */
+  --font-logo: "Monotype Corsiva", "Apple Chancery", cursive;
+  --font-header: 'Inter', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-urdu: "Jameel Noori Nastaleeq", "Noto Nastaliq Urdu", serif;
+  --font-arabic: "Traditional Arabic", "Adobe Arabic", "Noto Sans Arabic", serif;
+
+  /* Theme Text Colors */
+  --text-main: #ffffff;
+  --text-muted: #a1a1aa;
 
   /* Branding Colors - strictly for brand name and tagline */
   --gold-shining: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
@@ -18,6 +35,16 @@
 
   /* Transitions */
   --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color-scheme: dark;
+}
+
+[data-theme='dark-grey'] {
+  --background: #1e1e24;
+  --foreground: #e2e8f0;
+  --surface: #2b2b36;
+  --border: #3f3f4e;
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
   color-scheme: dark;
 }
 
@@ -58,7 +85,13 @@ body {
   background-color: var(--background);
   color: var(--foreground);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.3s ease, color 0.3s ease, font-family 0.3s ease;
+}
+
+body.lang-urdu {
+  font-family: 'Jameel Noori Nastaleeq', 'Noto Nastaliq Urdu', 'Inter', system-ui, sans-serif;
+  font-size: 1.1em;
+  line-height: 1.8;
 }
 
 /* All UI elements inherit theme foreground color */
@@ -94,21 +127,53 @@ a {
 
 /* Exception for branding and specific accents */
 .brand-name {
-  background: var(--gold-shining);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  color: transparent !important;
-  font-family: 'Monotype Corsiva', 'Playfair Display', serif;
-  font-weight: 700;
-  text-shadow: 0 0 10px rgba(191, 149, 63, 0.3);
+  color: var(--gold-matte) !important;
+  font-family: var(--font-logo);
+  font-weight: 400;
+  font-style: italic;
+  letter-spacing: 0.02em;
+  -webkit-background-clip: initial;
+  background-clip: initial;
+  -webkit-text-fill-color: initial;
+  background: none;
+  text-shadow: none;
+  filter: none;
+}
+
+.urdu-text {
+  font-family: var(--font-urdu) !important;
+  direction: rtl;
+}
+
+.arabic-text {
+  font-family: var(--font-arabic) !important;
+  direction: rtl;
+}
+
+[data-theme='light'] .brand-name {
+  color: #8a6d3b !important;
+  /* Slightly deeper gold for white backgrounds */
+}
+
+[data-theme='light'] .brand-name,
+[data-theme='light-grey'] .brand-name {
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+  filter: drop-shadow(0px 0px 1px rgba(0, 0, 0, 0.3));
 }
 
 .tagline {
   color: var(--gold-matte) !important;
-  font-family: 'Tahoma', 'Arial', sans-serif;
-  letter-spacing: 0.1em;
+  font-family: 'Outfit', 'Inter', sans-serif;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
+  font-weight: 600;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme='light'] .tagline,
+[data-theme='light-grey'] .tagline {
+  text-shadow: 0.5px 0.5px 1px rgba(0, 0, 0, 0.2);
+  font-weight: 700;
 }
 
 .gold-accent {

@@ -9,8 +9,9 @@ export function ThemeSwitcher() {
 
     const themes = [
         { id: 'dark', label: 'Dark', icon: <Moon size={15} /> },
+        { id: 'dark-grey', label: 'Dark Grey', icon: <Moon size={15} color="var(--text-secondary)" /> },
         { id: 'light', label: 'Light', icon: <Sun size={15} /> },
-        { id: 'light-grey', label: 'Grey', icon: <Monitor size={15} /> },
+        { id: 'light-grey', label: 'Light Grey', icon: <Monitor size={15} /> },
     ] as const;
 
     return (

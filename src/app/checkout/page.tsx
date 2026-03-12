@@ -20,11 +20,24 @@ export default function CheckoutPage() {
     const [currency, setCurrency] = useState('USD');
     const [total, setTotal] = useState(0);
 
+    const [gateways, setGateways] = useState<any[]>([]);
+
     useEffect(() => {
         const savedCurrency = localStorage.getItem('userCurrency') || 'USD';
-        const savedTotal = localStorage.getItem('cartTotal') || '145'; // Default mock total
+        const savedTotal = localStorage.getItem('cartTotal') || '145';
         setCurrency(savedCurrency);
         setTotal(parseFloat(savedTotal));
+
+        const loadGateways = () => {
+            const saved = localStorage.getItem('cutixa_gateways');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                setGateways(parsed.filter((g: any) => g.active));
+            }
+        };
+        loadGateways();
+        window.addEventListener('storage', loadGateways);
+        return () => window.removeEventListener('storage', loadGateways);
     }, []);
 
     const handleSendOTP = () => {
@@ -107,13 +120,13 @@ export default function CheckoutPage() {
                             <div className={styles.methodGroup}>
                                 <h4>Local Wallets</h4>
                                 <div className={styles.chipGrid}>
-                                    {paymentMethods.filter(m => m.category === 'Local Wallets').map(m => (
+                                    {gateways.map(m => (
                                         <span
                                             key={m.id}
                                             className={`${styles.methodChip} ${selectedMethod === m.id ? styles.activeChip : ''}`}
                                             onClick={() => setSelectedMethod(m.id)}
                                         >
-                                            {m.icon} {m.name}
+                                            {m.name}
                                         </span>
                                     ))}
                                 </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Eye,
     EyeOff,
@@ -10,7 +10,9 @@ import {
     Layers,
     Save,
     Info,
-    Trash2
+    Trash2,
+    Edit3,
+    Type
 } from 'lucide-react';
 import styles from '../dashboard.module.css';
 
@@ -23,46 +25,227 @@ interface PageItem {
 }
 
 export default function PageManagement() {
-    const [items, setItems] = useState<PageItem[]>([
-        { id: 'p1', name: 'Home Landing', type: 'Page', isVisible: true, lastModified: '2026-03-01' },
-        { id: 'p2', name: 'Shop / Store', type: 'Page', isVisible: true, lastModified: '2026-03-01' },
-        { id: 'c1', name: 'Mens', type: 'Category', isVisible: true, lastModified: '2026-03-02' },
-        { id: 'c2', name: 'Women', type: 'Category', isVisible: true, lastModified: '2026-03-02' },
-        { id: 'c3', name: 'Fragrances', type: 'Category', isVisible: true, lastModified: '2026-03-03' },
-        { id: 'c4', name: 'Beauty & Self Care', type: 'Category', isVisible: true, lastModified: '2026-03-03' },
-        { id: 'c5', name: 'Special Offers', type: 'Category', isVisible: true, lastModified: '2026-03-03' },
-        { id: 'p3', name: 'Contact Us', type: 'Page', isVisible: true, lastModified: '2026-02-28' },
-    ]);
+    const [items, setItems] = useState<PageItem[]>([]);
+    const [categories, setCategories] = useState<any[]>([]);
 
+    // Page Content Editor States
+    const [editingPage, setEditingPage] = useState<PageItem | null>(null);
+    const [pageContent, setPageContent] = useState('');
+    const [isUrduMode, setIsUrduMode] = useState(false);
+
+    const [showSubModal, setShowSubModal] = useState<string | null>(null);
+    const [subName, setSubName] = useState('');
+    const [showMapModal, setShowMapModal] = useState<string | null>(null);
     const [newItemName, setNewItemName] = useState('');
     const [showAddModal, setShowAddModal] = useState(false);
     const [addType, setAddType] = useState<'Page' | 'Category'>('Page');
 
+    const [selectedFonts, setSelectedFonts] = useState({
+        logo: 'Monotype Corsiva',
+        header: 'Inter',
+        body: 'Inter'
+    });
+
+    const MS_WORD_FONTS = [
+        { name: 'Monotype Corsiva', family: '"Monotype Corsiva", "Apple Chancery", cursive' },
+        { name: 'Times New Roman', family: '"Times New Roman", Times, serif' },
+        { name: 'Arial', family: 'Arial, Helvetica, sans-serif' },
+        { name: 'Calibri', family: 'Calibri, Candara, Segoe, "Segoe UI", Optima, Arial, sans-serif' },
+        { name: 'Garamond', family: 'Garamond, Baskerville, "Baskerville Old Face", "Hoefler Text", "Times New Roman", serif' },
+        { name: 'Verdana', family: 'Verdana, Geneva, sans-serif' },
+        { name: 'Playfair Display', family: '"Playfair Display", serif' },
+        { name: 'Great Vibes', family: '"Great Vibes", cursive' },
+        { name: 'Cinzel Decorative', family: '"Cinzel Decorative", serif' },
+        { name: 'Jameel Noori', family: '"Jameel Noori Nastaleeq", "Noto Nastaliq Urdu", serif' },
+        { name: 'Traditional Arabic', family: '"Traditional Arabic", "Adobe Arabic", serif' }
+    ];
+
+    const LAYOUTS = [
+        { id: 'grid-classic', name: 'Classic Grid', icon: Layout },
+        { id: 'masonry', name: 'Modern Masonry', icon: Layers },
+        { id: 'list-detail', name: 'List & Detail', icon: Eye }
+    ];
+    const [activeLayout, setActiveLayout] = useState('grid-classic');
+
+    useEffect(() => {
+        const savedPages = localStorage.getItem('cutixa_pages');
+        if (savedPages) setItems(JSON.parse(savedPages));
+        else {
+            const initial = [
+                { id: 'p1', name: 'Home Landing', type: 'Page', isVisible: true, lastModified: '2026-03-01' },
+                { id: 'p2', name: 'Shop / Store', type: 'Page', isVisible: true, lastModified: '2026-03-01' },
+                { id: 'p3', name: 'Contact Us', type: 'Page', isVisible: true, lastModified: '2026-02-28' },
+            ];
+            setItems(initial as PageItem[]);
+            localStorage.setItem('cutixa_pages', JSON.stringify(initial));
+        }
+
+        const savedCats = localStorage.getItem('cutixa_categories');
+        if (savedCats) setCategories(JSON.parse(savedCats));
+        else {
+            const initialCats = [
+                {
+                    id: 'cat_men',
+                    name: 'Men',
+                    isVisible: true,
+                    type: 'Category',
+                    subcategories: [
+                        { id: 'men_pents', name: 'Pents', isVisible: true },
+                        { id: 'men_shirts', name: 'Shirts', isVisible: true },
+                        { id: 'men_kurta', name: 'Kurta', isVisible: true },
+                        { id: 'men_stiched', name: 'Stiched', isVisible: true },
+                        { id: 'men_unstiched', name: 'Unstiched', isVisible: true },
+                        { id: 'men_sox', name: 'Sox', isVisible: true },
+                        { id: 'men_belts', name: 'Belts', isVisible: true },
+                        { id: 'men_wallets', name: 'Wallets', isVisible: true },
+                        { id: 'men_watches', name: 'Watches', isVisible: true },
+                        { id: 'men_rings', name: 'Rings', isVisible: true },
+                        { id: 'men_caps', name: 'Caps', isVisible: true }
+                    ]
+                },
+                {
+                    id: 'cat_women',
+                    name: 'Women',
+                    isVisible: true,
+                    type: 'Category',
+                    subcategories: [
+                        { id: 'women_pents', name: 'Pents', isVisible: true },
+                        { id: 'women_shirts', name: 'Shirts', isVisible: true },
+                        { id: 'women_ladies_clothing', name: 'Ladies Clothing (Stiched, Unstiched)', isVisible: true },
+                        { id: 'women_kurta', name: 'Kurta', isVisible: true },
+                        { id: 'women_sox', name: 'Sox', isVisible: true },
+                        { id: 'women_belts', name: 'Belts', isVisible: true },
+                        { id: 'women_wallets', name: 'Wallets/ Purses/ Clutch', isVisible: true },
+                        { id: 'women_watches', name: 'Watches', isVisible: true },
+                        { id: 'women_caps', name: 'Caps', isVisible: true },
+                        { id: 'women_jewellery', name: 'Jewellery (Ear Rings, Nose Pins, Rings, Necklace)', isVisible: true }
+                    ]
+                },
+                {
+                    id: 'cat_beauty',
+                    name: 'Beauty and Personal Care',
+                    isVisible: true,
+                    type: 'Category',
+                    subcategories: [
+                        { id: 'beauty_extracts', name: 'Extracts (Glycerites, Oleolites)', isVisible: true },
+                        { id: 'beauty_skincare', name: 'Skin Care', isVisible: true },
+                        { id: 'beauty_creams', name: 'Beauty Creams and Soaps', isVisible: true },
+                        { id: 'beauty_haircare', name: 'Hair Care', isVisible: true }
+                    ]
+                }
+            ];
+            setCategories(initialCats);
+            localStorage.setItem('cutixa_categories', JSON.stringify(initialCats));
+        }
+
+        const savedFonts = localStorage.getItem('cutixa_brand_fonts');
+        if (savedFonts) {
+            const parsed = JSON.parse(savedFonts);
+            setSelectedFonts(parsed);
+            Object.entries(parsed).forEach(([key, val]: [string, any]) => {
+                const fontObj = MS_WORD_FONTS.find(f => f.name === val);
+                if (fontObj) document.documentElement.style.setProperty(`--font-${key}`, fontObj.family);
+            });
+        }
+
+        const savedLayout = localStorage.getItem('cutixa_shop_layout');
+        if (savedLayout) setActiveLayout(savedLayout);
+    }, []);
+
+    const changeFont = (type: 'logo' | 'header' | 'body', fontName: string) => {
+        const fontObj = MS_WORD_FONTS.find(f => f.name === fontName);
+        if (fontObj) {
+            const newFonts = { ...selectedFonts, [type]: fontName };
+            setSelectedFonts(newFonts);
+            document.documentElement.style.setProperty(`--font-${type}`, fontObj.family);
+            localStorage.setItem('cutixa_brand_fonts', JSON.stringify(newFonts));
+        }
+    };
+
+    const changeLayout = (layoutId: string) => {
+        setActiveLayout(layoutId);
+        localStorage.setItem('cutixa_shop_layout', layoutId);
+        alert(`Shop Layout updated to: ${layoutId}`);
+    };
+
+    const saveAll = (newPages: PageItem[], newCats: any[]) => {
+        setItems(newPages);
+        setCategories(newCats);
+        localStorage.setItem('cutixa_pages', JSON.stringify(newPages));
+        localStorage.setItem('cutixa_categories', JSON.stringify(newCats));
+        window.dispatchEvent(new Event('storage'));
+    };
+
     const handleAddItem = (e: React.FormEvent) => {
         e.preventDefault();
         if (!newItemName) return;
-        const newItem: PageItem = {
-            id: Math.random().toString(36).substr(2, 9),
-            name: newItemName,
-            type: addType,
-            isVisible: true,
-            lastModified: new Date().toISOString().split('T')[0]
-        };
-        setItems([...items, newItem]);
+        if (addType === 'Category') {
+            const newCat = {
+                id: Math.random().toString(36).substr(2, 9),
+                name: newItemName,
+                isVisible: true,
+                mappedPages: ['p2'],
+                subcategories: []
+            };
+            saveAll(items, [...categories, newCat]);
+        } else {
+            const newItem: PageItem = {
+                id: Math.random().toString(36).substr(2, 9),
+                name: newItemName,
+                type: 'Page',
+                isVisible: true,
+                lastModified: new Date().toISOString().split('T')[0]
+            };
+            saveAll([...items, newItem], categories);
+        }
         setNewItemName('');
         setShowAddModal(false);
     };
 
     const removeItem = (id: string) => {
         if (confirm('Are you sure you want to remove this?')) {
-            setItems(items.filter(item => item.id !== id));
+            saveAll(items.filter(item => item.id !== id), categories);
+        }
+    };
+
+    const removeCategory = (id: string) => {
+        if (confirm('Are you sure you want to remove this category?')) {
+            saveAll(items, categories.filter(c => c.id !== id));
         }
     };
 
     const toggleVisibility = (id: string) => {
-        setItems(items.map(item =>
+        const newPages = items.map(item =>
             item.id === id ? { ...item, isVisible: !item.isVisible, lastModified: new Date().toISOString().split('T')[0] } : item
-        ));
+        );
+        saveAll(newPages, categories);
+    };
+
+    const toggleCategoryVisibility = (id: string) => {
+        const newCats = categories.map(cat =>
+            cat.id === id ? { ...cat, isVisible: !cat.isVisible } : cat
+        );
+        saveAll(items, newCats);
+    };
+
+    const toggleSubVisibility = (catId: string, subId: string) => {
+        const newCats = categories.map(cat => {
+            if (cat.id === catId) {
+                return {
+                    ...cat,
+                    subcategories: cat.subcategories.map((sub: any) =>
+                        sub.id === subId ? { ...sub, isVisible: !sub.isVisible } : sub
+                    )
+                };
+            }
+            return cat;
+        });
+        saveAll(items, newCats);
+    };
+
+    const openEditor = (page: PageItem) => {
+        setEditingPage(page);
+        setPageContent(localStorage.getItem(`page_content_${page.id}`) || `Welcome to ${page.name} content editor...`);
     };
 
     return (
@@ -70,7 +253,7 @@ export default function PageManagement() {
             <div className={styles.controls}>
                 <div className={styles.alertBox}>
                     <Info size={18} />
-                    <span>Hiding a category will remove it from the customer navigation and shop filters.</span>
+                    <span>Manage your website architecture and content directly from here.</span>
                 </div>
                 <div className={styles.actions}>
                     <button className={styles.secondaryBtn} onClick={() => { setAddType('Page'); setShowAddModal(true); }}>
@@ -103,6 +286,9 @@ export default function PageManagement() {
                                     <button onClick={() => toggleVisibility(item.id)} className={item.isVisible ? styles.visibleBtn : styles.hiddenBtn}>
                                         {item.isVisible ? <Eye size={18} /> : <EyeOff size={18} />}
                                     </button>
+                                    <button onClick={() => openEditor(item)} className={styles.editBtn} title="Edit Page Layout">
+                                        <Edit3 size={16} />
+                                    </button>
                                     <button onClick={() => removeItem(item.id)} className={styles.deleteBtn}><Trash2 size={16} /></button>
                                 </div>
                             </div>
@@ -110,7 +296,7 @@ export default function PageManagement() {
                     </div>
                 </div>
 
-                {/* Category Visibility */}
+                {/* Categories */}
                 <div className={`${styles.card} glass`}>
                     <div className={styles.cardHeader}>
                         <div className={styles.titleWithIcon}>
@@ -119,23 +305,120 @@ export default function PageManagement() {
                         </div>
                     </div>
                     <div className={styles.configList}>
-                        {items.filter(i => i.type === 'Category').map(item => (
-                            <div key={item.id} className={styles.configItem}>
-                                <div className={styles.configInfo}>
-                                    <p className={styles.configName}>{item.name}</p>
-                                    <span className={styles.configDate}>Last sync: {item.lastModified}</span>
+                        {categories.map(cat => (
+                            <div key={cat.id} className={styles.categoryGroup} style={{ marginBottom: '1rem', paddingBottom: '1rem', borderBottom: '1px solid var(--border)' }}>
+                                <div className={styles.configItem}>
+                                    <div className={styles.configInfo}>
+                                        <p className={styles.configName} style={{ fontWeight: 700, color: 'var(--gold-matte)' }}>{cat.name}</p>
+                                        <span className={styles.configDate}>Main Category</span>
+                                    </div>
+                                    <div className={styles.itemRowActions}>
+                                        <button onClick={() => toggleCategoryVisibility(cat.id)} className={cat.isVisible ? styles.visibleBtn : styles.hiddenBtn}>
+                                            {cat.isVisible ? <Eye size={18} /> : <EyeOff size={18} />}
+                                        </button>
+                                        <button onClick={() => removeCategory(cat.id)} className={styles.deleteBtn}><Trash2 size={16} /></button>
+                                    </div>
                                 </div>
-                                <div className={styles.itemRowActions}>
-                                    <button onClick={() => toggleVisibility(item.id)} className={item.isVisible ? styles.visibleBtn : styles.hiddenBtn}>
-                                        {item.isVisible ? <Eye size={18} /> : <EyeOff size={18} />}
+                                <div style={{ marginLeft: '2rem', marginTop: '0.5rem', display: 'grid', gap: '5px' }}>
+                                    {cat.subcategories.map((sub: any) => (
+                                        <div key={sub.id} className={styles.configItem} style={{ padding: '4px 8px', border: 'none', background: 'rgba(255,255,255,0.03)' }}>
+                                            <span style={{ fontSize: '0.8rem', opacity: 0.8 }}>{sub.name}</span>
+                                            <div className={styles.itemRowActions}>
+                                                <button onClick={() => toggleSubVisibility(cat.id, sub.id)} className={sub.isVisible ? styles.visibleBtn : styles.hiddenBtn} style={{ padding: '2px' }}>
+                                                    {sub.isVisible ? <Eye size={14} /> : <EyeOff size={14} />}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    <button
+                                        className={styles.secondaryBtn}
+                                        style={{ fontSize: '10px', padding: '4px', width: 'fit-content' }}
+                                        onClick={() => {
+                                            const name = prompt('Enter subcategory name:');
+                                            if (name) {
+                                                const newSub = { id: Math.random().toString(36).substr(2, 9), name, isVisible: true };
+                                                const newCats = categories.map(c => c.id === cat.id ? { ...c, subcategories: [...c.subcategories, newSub] } : c);
+                                                saveAll(items, newCats);
+                                            }
+                                        }}
+                                    >
+                                        + Sub
                                     </button>
-                                    <button onClick={() => removeItem(item.id)} className={styles.deleteBtn}><Trash2 size={16} /></button>
                                 </div>
                             </div>
                         ))}
                     </div>
                 </div>
             </div>
+
+            {/* Page Editor Modal */}
+            {editingPage && (
+                <div className={styles.modalOverlay}>
+                    <div className={`${styles.modalContent} glass`} style={{ maxWidth: '800px', width: '90%' }}>
+                        <div className={styles.modalHeader}>
+                            <h3 className="brand-name">Visual Editor: {editingPage.name}</h3>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                <button
+                                    className={`${styles.secondaryBtn} ${isUrduMode ? styles.activeTab : ''}`}
+                                    onClick={() => setIsUrduMode(!isUrduMode)}
+                                >
+                                    <Type size={16} /> {isUrduMode ? 'Switch English' : 'Urdu Mode'}
+                                </button>
+                                <button onClick={() => setEditingPage(null)} className={styles.closeBtn}>×</button>
+                            </div>
+                        </div>
+                        <div className={styles.formGroup} style={{ marginTop: '1rem' }}>
+                            <label>Draft Content (Elementor Style Text Editor)</label>
+                            <textarea
+                                className={`${styles.input} ${isUrduMode ? 'urdu-text' : ''}`}
+                                style={{ minHeight: '350px', padding: '1.5rem', fontSize: isUrduMode ? '1.5rem' : '1rem' }}
+                                value={pageContent}
+                                onChange={(e) => setPageContent(e.target.value)}
+                            />
+                        </div>
+                        <div className={styles.modalFooter}>
+                            <button className={styles.secondaryBtn} onClick={() => setEditingPage(null)}>Cancel</button>
+                            <button className={styles.primaryBtn} onClick={() => {
+                                localStorage.setItem(`page_content_${editingPage.id}`, pageContent);
+                                setEditingPage(null);
+                                alert('Page content updated successfully!');
+                            }}>
+                                <Save size={18} /> Update Page
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Mapping Modal */}
+            {showMapModal && (
+                <div className={styles.modalOverlay}>
+                    <div className={`${styles.modalContent} glass`} style={{ maxWidth: '400px' }}>
+                        <h4>Map Category to Pages</h4>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '1rem' }}>
+                            {items.map(p => (
+                                <label key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+                                    <input
+                                        type="checkbox"
+                                        checked={categories.find(c => c.id === showMapModal)?.mappedPages.includes(p.id)}
+                                        onChange={(e) => {
+                                            const cat = categories.find(c => c.id === showMapModal);
+                                            const newPages = e.target.checked
+                                                ? [...cat.mappedPages, p.id]
+                                                : cat.mappedPages.filter((id: string) => id !== p.id);
+                                            const newCats = categories.map(c => c.id === showMapModal ? { ...c, mappedPages: newPages } : c);
+                                            saveAll(items, newCats);
+                                        }}
+                                    /> {p.name}
+                                </label>
+                            ))}
+                        </div>
+                        <div className={styles.modalFooter}>
+                            <button className={styles.primaryBtn} onClick={() => setShowMapModal(null)}>Done</button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {showAddModal && (
                 <div className={styles.modalOverlay}>
@@ -161,6 +444,76 @@ export default function PageManagement() {
                     </div>
                 </div>
             )}
+
+            {/* Branding & Layout Controls */}
+            <div className={styles.grid2} style={{ marginTop: '2rem' }}>
+                {/* Font Customizer */}
+                <div className={`${styles.card} glass`}>
+                    <div className={styles.cardHeader}>
+                        <div className={styles.titleWithIcon}>
+                            <Type size={20} className={styles.statIcon} />
+                            <h3>Global Typography</h3>
+                        </div>
+                    </div>
+                    <div style={{ padding: '1rem' }}>
+                        {(['logo', 'header', 'body'] as const).map(type => (
+                            <div key={type} className={styles.formGroup} style={{ marginBottom: '1.5rem' }}>
+                                <label style={{ textTransform: 'capitalize' }}>{type} Font Style</label>
+                                <select
+                                    className={styles.select}
+                                    value={selectedFonts[type]}
+                                    onChange={(e) => changeFont(type, e.target.value)}
+                                >
+                                    {MS_WORD_FONTS.map(f => (
+                                        <option key={f.name} value={f.name}>{f.name}</option>
+                                    ))}
+                                </select>
+                                <p style={{ fontSize: '0.9rem', marginTop: '5px', fontFamily: MS_WORD_FONTS.find(f => f.name === selectedFonts[type])?.family }}>
+                                    Sample: The quick brown fox jumps over the lazy dog.
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Page Layout Selector */}
+                <div className={`${styles.card} glass`}>
+                    <div className={styles.cardHeader}>
+                        <div className={styles.titleWithIcon}>
+                            <Layout size={20} className={styles.statIcon} />
+                            <h3>Shop Page Layouts</h3>
+                        </div>
+                    </div>
+                    <div style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
+                        {LAYOUTS.map(layout => {
+                            const LayoutIcon = layout.icon;
+                            return (
+                                <button
+                                    key={layout.id}
+                                    onClick={() => changeLayout(layout.id)}
+                                    className={styles.configItem}
+                                    style={{
+                                        border: activeLayout === layout.id ? '1px solid var(--gold-shining)' : '1px solid var(--border)',
+                                        background: activeLayout === layout.id ? 'rgba(197, 160, 89, 0.1)' : 'transparent',
+                                        width: '100%',
+                                        textAlign: 'left'
+                                    }}
+                                >
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                        <div style={{ padding: '10px', background: 'var(--surface)', borderRadius: '8px' }}>
+                                            <LayoutIcon size={24} color={activeLayout === layout.id ? 'var(--gold-matte)' : 'var(--text-secondary)'} />
+                                        </div>
+                                        <div>
+                                            <p style={{ fontWeight: 600, margin: 0 }}>{layout.name}</p>
+                                            <p style={{ fontSize: '0.75rem', margin: 0, opacity: 0.6 }}>Optimize for conversion and user experience.</p>
+                                        </div>
+                                    </div>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }

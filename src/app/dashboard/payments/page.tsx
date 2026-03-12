@@ -13,34 +13,59 @@ import {
 import styles from '../dashboard.module.css';
 
 export default function PaymentManagement() {
-    const [localGateways, setLocalGateways] = useState([
-        { id: 'jazzcash', name: 'JazzCash', active: true, title: 'CutiXa Official', number: '0300-1234567' },
-        { id: 'sadapay', name: 'SadaPay', active: true, title: 'CutiXa Adore', number: '0312-7654321' },
-        { id: 'easypaisa', name: 'EasyPaisa', active: false, title: '', number: '' },
-    ]);
+    const [localGateways, setLocalGateways] = useState<any[]>([]);
+    const [bankConfig, setBankConfig] = useState<any>({});
+    const [intlConfig, setIntlConfig] = useState<any>({});
 
-    const [bankConfig, setBankConfig] = useState({
-        bankName: 'Meezan Bank',
-        accountTitle: 'CutiXa Adore PVT LTD',
-        accountNumber: '0202010101010',
-        iban: 'PK45MEZN0000202010101010'
-    });
+    React.useEffect(() => {
+        const loadPayments = () => {
+            const savedGateways = localStorage.getItem('cutixa_gateways');
+            const savedBank = localStorage.getItem('cutixa_bank');
+            const savedIntl = localStorage.getItem('cutixa_intl');
 
-    const [intlConfig, setIntlConfig] = useState({
-        method: 'PayPal',
-        email: 'finance@cutixa.com',
-        autoConvert: true,
-        currency: 'USD'
-    });
+            if (savedGateways) setLocalGateways(JSON.parse(savedGateways));
+            else {
+                const initial = [
+                    { id: 'jazzcash', name: 'JazzCash', active: true, title: 'CutiXa Official', number: '0300-1234567' },
+                    { id: 'sadapay', name: 'SadaPay', active: true, title: 'CutiXa Adore', number: '0312-7654321' },
+                    { id: 'easypaisa', name: 'EasyPaisa', active: false, title: '', number: '' },
+                ];
+                setLocalGateways(initial);
+                localStorage.setItem('cutixa_gateways', JSON.stringify(initial));
+            }
+
+            if (savedBank) setBankConfig(JSON.parse(savedBank));
+            else {
+                const initialBank = { bankName: 'Meezan Bank', accountTitle: 'CutiXa Adore PVT LTD', accountNumber: '0202010101010', iban: 'PK45MEZN0000202010101010' };
+                setBankConfig(initialBank);
+                localStorage.setItem('cutixa_bank', JSON.stringify(initialBank));
+            }
+
+            if (savedIntl) setIntlConfig(JSON.parse(savedIntl));
+            else {
+                const initialIntl = { method: 'PayPal', email: 'finance@cutixa.com', autoConvert: true, currency: 'USD' };
+                setIntlConfig(initialIntl);
+                localStorage.setItem('cutixa_intl', JSON.stringify(initialIntl));
+            }
+        };
+
+        loadPayments();
+        window.addEventListener('storage', loadPayments);
+        return () => window.removeEventListener('storage', loadPayments);
+    }, []);
+
+    const handleSave = () => {
+        localStorage.setItem('cutixa_gateways', JSON.stringify(localGateways));
+        localStorage.setItem('cutixa_bank', JSON.stringify(bankConfig));
+        localStorage.setItem('cutixa_intl', JSON.stringify(intlConfig));
+        window.dispatchEvent(new Event('storage'));
+        alert('Payment settings saved and live!');
+    };
 
     const handleLocalGatewayChange = (id: string, field: string, value: any) => {
         setLocalGateways(prev => prev.map(gw =>
             gw.id === id ? { ...gw, [field]: value } : gw
         ));
-    };
-
-    const handleSave = () => {
-        alert('Payment settings saved successfully!');
     };
 
     return (
@@ -74,14 +99,14 @@ export default function PaymentManagement() {
                                                 type="text"
                                                 placeholder="Account Title"
                                                 className={styles.input}
-                                                value={gw.title}
+                                                value={gw.title || ''}
                                                 onChange={(e) => handleLocalGatewayChange(gw.id, 'title', e.target.value)}
                                             />
                                             <input
                                                 type="text"
                                                 placeholder="Mobile Number"
                                                 className={styles.input}
-                                                value={gw.number}
+                                                value={gw.number || ''}
                                                 onChange={(e) => handleLocalGatewayChange(gw.id, 'number', e.target.value)}
                                             />
                                         </div>
@@ -108,7 +133,7 @@ export default function PaymentManagement() {
                             <input
                                 type="text"
                                 className={styles.input}
-                                value={bankConfig.bankName}
+                                value={bankConfig.bankName || ''}
                                 onChange={(e) => setBankConfig({ ...bankConfig, bankName: e.target.value })}
                             />
                         </div>
@@ -117,7 +142,7 @@ export default function PaymentManagement() {
                             <input
                                 type="text"
                                 className={styles.input}
-                                value={bankConfig.accountTitle}
+                                value={bankConfig.accountTitle || ''}
                                 onChange={(e) => setBankConfig({ ...bankConfig, accountTitle: e.target.value })}
                             />
                         </div>
@@ -126,7 +151,7 @@ export default function PaymentManagement() {
                             <input
                                 type="text"
                                 className={styles.input}
-                                value={bankConfig.accountNumber}
+                                value={bankConfig.accountNumber || ''}
                                 onChange={(e) => setBankConfig({ ...bankConfig, accountNumber: e.target.value })}
                             />
                         </div>
@@ -135,7 +160,7 @@ export default function PaymentManagement() {
                             <input
                                 type="text"
                                 className={styles.input}
-                                value={bankConfig.iban}
+                                value={bankConfig.iban || ''}
                                 onChange={(e) => setBankConfig({ ...bankConfig, iban: e.target.value })}
                             />
                         </div>
@@ -161,7 +186,7 @@ export default function PaymentManagement() {
                         <label>Payout Method</label>
                         <select
                             className={styles.select}
-                            value={intlConfig.method}
+                            value={intlConfig.method || ''}
                             onChange={(e) => setIntlConfig({ ...intlConfig, method: e.target.value })}
                         >
                             <option>PayPal</option>
@@ -174,7 +199,7 @@ export default function PaymentManagement() {
                         <input
                             type="text"
                             className={styles.input}
-                            value={intlConfig.email}
+                            value={intlConfig.email || ''}
                             onChange={(e) => setIntlConfig({ ...intlConfig, email: e.target.value })}
                         />
                     </div>

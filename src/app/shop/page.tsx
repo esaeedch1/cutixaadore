@@ -6,8 +6,9 @@ import { useTranslation } from '@/components/LanguageProvider';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import styles from './shop.module.css';
 
+
 interface Product {
-    id: number;
+    id: string | number;
     name: string;
     category: string;
     price: number;
@@ -15,15 +16,7 @@ interface Product {
     description: string;
 }
 
-const dummyProducts: Product[] = [
-    { id: 1, name: 'Radiance Serum', category: 'Beauty & Self Care', price: 45, image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&q=80&w=400', description: 'Glow like never before with our signature radiance serum.' },
-    { id: 2, name: 'Midnight Recovery Cream', category: 'Beauty & Self Care', price: 60, image: 'https://images.unsplash.com/photo-1556229010-6c3f2c9ca5f8?auto=format&fit=crop&q=80&w=400', description: 'Repair and rejuvenate your skin while you sleep.' },
-    { id: 3, name: 'Oud Wood Essence', category: 'Fragrances', price: 120, image: 'https://images.unsplash.com/photo-1541643600914-78b084683601?auto=format&fit=crop&q=80&w=400', description: 'A deep, smokey fragrance for those who dare.' },
-    { id: 4, name: 'Daily Hydrator for Men', category: 'Mens', price: 25, image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&q=80&w=400', description: 'Quick-absorbing hydration designed for men\'s skin.' },
-    { id: 5, name: 'Silk Cleansing Balm', category: 'Women', price: 35, image: 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?auto=format&fit=crop&q=80&w=400', description: 'Melts away makeup and leaves skin feeling like silk.' },
-    { id: 6, name: 'Pure Rose Water', category: 'Special Offers', price: 15, image: 'https://images.unsplash.com/photo-1556228448-61928ec26e11?auto=format&fit=crop&q=80&w=400', description: '100% organic rose water for instant refreshment.' },
-];
-
+// Dummy data removed to prioritize real dashboard data
 const categories = ['All', 'Mens', 'Women', 'Fragrances', 'Beauty & Self Care', 'Special Offers'];
 
 export default function ShopPage() {
@@ -33,15 +26,81 @@ export default function ShopPage() {
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [showCartPopup, setShowCartPopup] = useState(false);
     const [currency, setCurrency] = useState('USD');
+    const [products, setProducts] = useState<any[]>([]);
+    const [navCategories, setNavCategories] = useState<string[]>(['All']);
 
     useEffect(() => {
         const savedCurrency = localStorage.getItem('userCurrency');
         if (savedCurrency) setCurrency(savedCurrency);
+
+        const loadData = () => {
+            const savedProducts = localStorage.getItem('cutixa_products');
+            const savedCats = localStorage.getItem('cutixa_categories');
+
+            if (savedCats) {
+                const parsedCats = JSON.parse(savedCats);
+                // Get only visible main categories
+                const visibleCats = parsedCats.filter((c: any) => c.isVisible);
+                setNavCategories(['All', ...visibleCats.map((c: any) => c.name)]);
+
+                // Store full category data for subcategory filtering
+                (window as any)._allCats = parsedCats;
+            }
+
+            if (savedProducts) {
+                const parsed = JSON.parse(savedProducts);
+                const mapped = parsed
+                    .filter((p: any) => {
+                        const isVisible = p.published && (p.visibility?.toLowerCase() === 'visible');
+                        if (!isVisible) return false;
+
+                        // Check if its category/subcategory is visible in Page Config
+                        const catData = (window as any)._allCats;
+                        if (catData && p.categories) {
+                            const [main, sub] = p.categories.split(' > ').map((s: string) => s.trim());
+                            const mainCat = catData.find((c: any) => c.name === main);
+                            if (mainCat && !mainCat.isVisible) return false;
+
+                            if (sub) {
+                                const subCat = mainCat?.subcategories?.find((s: any) => s.name === sub);
+                                if (subCat && !subCat.isVisible) return false;
+                            }
+                        }
+                        return true;
+                    })
+                    .map((p: any) => ({
+                        id: p.id,
+                        name: p.name,
+                        category: p.categories?.split(' > ')[0] || 'Uncategorized',
+                        price: p.regularPrice,
+                        image: p.images || 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=400',
+                        description: p.description || ''
+                    }));
+                setProducts(mapped);
+            } else {
+                setProducts([]);
+            }
+        };
+
+        loadData();
+        window.addEventListener('storage', loadData);
+        return () => window.removeEventListener('storage', loadData);
+    }, []);
+
+    useEffect(() => {
+        // Auto-refresh when dashboard pages config changes
+        const checkPageConfig = () => {
+            const savedPages = localStorage.getItem('cutixa_pages');
+            if (savedPages) {
+                // Potential logic for dynamic page content
+            }
+        };
+        checkPageConfig();
     }, []);
 
     const filteredProducts = selectedCategory === 'All'
-        ? dummyProducts
-        : dummyProducts.filter(p => p.category === selectedCategory);
+        ? products
+        : products.filter(p => p.category === selectedCategory);
 
     const addToCart = (product: Product) => {
         const newCart = [...cart, product];
@@ -60,6 +119,11 @@ export default function ShopPage() {
                     <h2 className="brand-name" style={{ fontSize: '1.5rem', cursor: 'pointer' }} onClick={() => window.location.href = '/'}>
                         CutiXa Adore
                     </h2>
+                    <nav style={{ display: 'flex', gap: '1.5rem', marginLeft: '2rem' }}>
+                        <a href="/shop" style={{ color: 'var(--gold-matte)', fontWeight: 600, textDecoration: 'none', fontSize: '0.9rem' }}>Shop</a>
+                        <a href="/courses" style={{ color: 'var(--text-secondary)', fontWeight: 500, textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.3s' }}>Courses</a>
+                        <a href="/contact" style={{ color: 'var(--text-secondary)', fontWeight: 500, textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.3s' }}>Contact Us</a>
+                    </nav>
                 </div>
                 <div className={styles.headerRight}>
                     <div className={styles.langWrapper}>
@@ -77,8 +141,6 @@ export default function ShopPage() {
 
                     <ThemeSwitcher />
 
-                    <a href="/contact" className={styles.navLink}>{t('Contact Us')}</a>
-
                     <div className={styles.cartIcon} onClick={() => window.location.href = '/cart'}>
                         <ShoppingCart size={20} />
                         {cart.length > 0 && <span className={styles.cartCount}>{cart.length}</span>}
@@ -92,7 +154,7 @@ export default function ShopPage() {
 
             {/* Category Navigation */}
             <nav className={styles.categoryNav}>
-                {categories.map(cat => (
+                {navCategories.map(cat => (
                     <button
                         key={cat}
                         className={`${styles.catBtn} ${selectedCategory === cat ? styles.activeCat : ''}`}
@@ -158,6 +220,29 @@ export default function ShopPage() {
                     </div>
                 </div>
             )}
+
+
+            {/* Social Footer */}
+            <footer style={{ borderTop: '1px solid var(--border)', padding: '1.5rem 2rem', marginTop: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                <span className="brand-name" style={{ fontSize: '1rem' }}>CutiXa Adore</span>
+                <div style={{ display: 'flex', gap: '1.5rem' }}>
+                    {[
+                        { name: 'Facebook', url: 'https://facebook.com', color: '#1877f2' },
+                        { name: 'Instagram', url: 'https://instagram.com', color: '#e1306c' },
+                        { name: 'TikTok', url: 'https://tiktok.com', color: 'var(--foreground)' },
+                        { name: 'Pinterest', url: 'https://pinterest.com', color: '#e60023' },
+                        { name: 'LinkedIn', url: 'https://linkedin.com', color: '#0077b5' },
+                    ].map(s => (
+                        <a key={s.name} href={s.url} target="_blank" rel="noreferrer"
+                            style={{ color: s.color, fontWeight: 600, textDecoration: 'none', fontSize: '0.85rem' }}
+                        >{s.name}</a>
+                    ))}
+                </div>
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                    <a href="/courses" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '0.85rem' }}>Courses</a>
+                    <a href="/contact" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '0.85rem' }}>Contact</a>
+                </div>
+            </footer>
         </div>
     );
 }

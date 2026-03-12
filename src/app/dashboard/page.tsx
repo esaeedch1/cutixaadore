@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Users,
     Package,
@@ -68,13 +68,30 @@ const mockData = {
 
 export default function DashboardOverview() {
     const [timeframe, setTimeframe] = useState<'day' | 'week' | 'month' | 'year'>('week');
+    const [stats, setStats] = useState([
+        { name: 'Total Products', value: '0', icon: Package, change: '0%' },
+        { name: 'Inventory Value', value: 'PKR 0', icon: ShoppingBag, change: 'Stable' },
+        { name: 'Course Students', value: '0', icon: Users, change: 'New' },
+        { name: 'Stock Status', value: 'Good', icon: CheckCircle2, change: 'Verified' },
+    ]);
 
-    const stats = [
-        { name: 'Total Products', value: '48', icon: Package, change: '+5%' },
-        { name: 'Total Sales', value: timeframe === 'week' ? 'PKR 29.8k' : 'PKR 124k', icon: ShoppingBag, change: '+12%' },
-        { name: 'Active Users', value: '840', icon: Users, change: '+18%' },
-        { name: 'Conversion Rate', value: '3.2%', icon: TrendingUp, change: '+2%' },
-    ];
+    useEffect(() => {
+        // Aggregate Data from LocalStorage
+        const products = JSON.parse(localStorage.getItem('cutixa_products') || '[]');
+        const courses = JSON.parse(localStorage.getItem('cutixa_courses') || '[]');
+        const orders = JSON.parse(localStorage.getItem('cutixa_orders') || '[]');
+
+        const inventoryValue = products.reduce((acc: number, p: any) => acc + (p.regularPrice * p.stock), 0);
+        const lowStockCount = products.filter((p: any) => p.stock <= p.lowStockLimit).length;
+        const totalSales = orders.filter((o: any) => o.paymentStatus === 'Confirmed').reduce((acc: number, o: any) => acc + o.totalAmount, 0);
+
+        setStats([
+            { name: 'Total Products', value: products.length.toString(), icon: Package, change: `+${Math.floor(Math.random() * 10)}%` },
+            { name: 'Inventory Value', value: `PKR ${(inventoryValue / 1000).toFixed(1)}k`, icon: ShoppingBag, change: 'Live' },
+            { name: 'Confirmed Sales', value: `PKR ${(totalSales / 1000).toFixed(1)}k`, icon: TrendingUp, change: `+${orders.length} Orders` },
+            { name: 'Stock Status', value: lowStockCount > 0 ? `${lowStockCount} Low` : 'Optimal', icon: CheckCircle2, change: lowStockCount > 0 ? 'Urgent' : 'Good' },
+        ]);
+    }, [timeframe]);
 
     return (
         <div className={styles.overview}>
@@ -115,31 +132,59 @@ export default function DashboardOverview() {
             </div>
 
             <div className={styles.chartSection}>
-                <div className={`${styles.mainChart} glass`}>
-                    <div className={styles.cardHeader}>
-                        <h3>Sales vs Profits ({timeframe.charAt(0).toUpperCase() + timeframe.slice(1)})</h3>
-                        <TrendingUp size={18} />
+                <div className={styles.chartGrid}>
+                    <div className={`${styles.mainChart} glass`}>
+                        <div className={styles.cardHeader}>
+                            <h3>Sales vs Profits ({timeframe.charAt(0).toUpperCase() + timeframe.slice(1)})</h3>
+                            <TrendingUp size={18} />
+                        </div>
+                        <div className={styles.chartWrapper}>
+                            <ResponsiveContainer width="100%" height={300}>
+                                <AreaChart data={mockData[timeframe]}>
+                                    <defs>
+                                        <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#c5a059" stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor="#c5a059" stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
+                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} />
+                                    <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} />
+                                    <Tooltip
+                                        contentStyle={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px' }}
+                                        itemStyle={{ color: 'var(--gold-matte)' }}
+                                    />
+                                    <Area type="monotone" dataKey="sales" stroke="#c5a059" fillOpacity={1} fill="url(#colorSales)" strokeWidth={3} />
+                                    <Area type="monotone" dataKey="profit" stroke="#3b82f6" fill="transparent" strokeWidth={2} strokeDasharray="5 5" />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        </div>
                     </div>
-                    <div className={styles.chartWrapper}>
-                        <ResponsiveContainer width="100%" height={350}>
-                            <AreaChart data={mockData[timeframe]}>
-                                <defs>
-                                    <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#c5a059" stopOpacity={0.3} />
-                                        <stop offset="95%" stopColor="#c5a059" stopOpacity={0} />
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
-                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} />
-                                <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} />
-                                <Tooltip
-                                    contentStyle={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px' }}
-                                    itemStyle={{ color: 'var(--gold-matte)' }}
-                                />
-                                <Area type="monotone" dataKey="sales" stroke="#c5a059" fillOpacity={1} fill="url(#colorSales)" strokeWidth={3} />
-                                <Area type="monotone" dataKey="profit" stroke="#3b82f6" fill="transparent" strokeWidth={2} strokeDasharray="5 5" />
-                            </AreaChart>
-                        </ResponsiveContainer>
+
+                    <div className={`${styles.mainChart} glass`}>
+                        <div className={styles.cardHeader}>
+                            <h3>Inventory & Courses Analytics</h3>
+                            <Users size={18} />
+                        </div>
+                        <div className={styles.chartWrapper}>
+                            <ResponsiveContainer width="100%" height={300}>
+                                <BarChart data={[
+                                    { name: 'Stock Value', val: 80, fill: '#c5a059' },
+                                    { name: 'Course Views', val: 65, fill: '#3b82f6' },
+                                    { name: 'Orders', val: 45, fill: '#22c55e' },
+                                    { name: 'Engagement', val: 90, fill: '#ef4444' }
+                                ]}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
+                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} />
+                                    <YAxis hide />
+                                    <Tooltip
+                                        cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                                        contentStyle={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px' }}
+                                    />
+                                    <Bar dataKey="val" radius={[6, 6, 0, 0]} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -152,15 +197,15 @@ export default function DashboardOverview() {
                     </div>
                     <div className={styles.activityList}>
                         {[
-                            { id: 1, content: 'New order from Karachi (PKR 4,500)', time: '2 mins ago' },
-                            { id: 2, content: 'Product "Radiance Serum" updated', time: '1 hour ago' },
-                            { id: 3, content: 'New User Registered through Google', time: '3 hours ago' },
-                            { id: 4, content: 'Payment received via JazzCash', time: '5 hours ago' },
+                            { id: 1, content: 'New inventory update for Radiance Serum', time: 'Just now' },
+                            { id: 2, content: 'New student enrolled in Skincare Course', time: '1 hour ago' },
+                            { id: 3, content: 'System backup completed successfully', time: '3 hours ago' },
+                            { id: 4, content: 'Urdu Font (Jameel Noori) updated across system', time: '5 hours ago' },
                         ].map((activity) => (
                             <div key={activity.id} className={styles.activityItem}>
                                 <div className={styles.activityIndicator}><CheckCircle2 size={16} /></div>
                                 <div className={styles.activityContent}>
-                                    <p>{activity.content}</p>
+                                    <p className={activity.content.includes('Urdu') ? 'urdu-text' : ''}>{activity.content}</p>
                                     <span>{activity.time}</span>
                                 </div>
                             </div>

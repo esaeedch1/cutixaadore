@@ -15,11 +15,12 @@ interface UserRole {
     id: string;
     name: string;
     email: string;
-    role: 'Owner' | 'Admin' | 'Manager' | 'DEO' | 'Salesman';
+    role: 'Developer' | 'Owner' | 'Admin' | 'Manager' | 'DEO' | 'Salesman';
     status: 'Active' | 'Pending' | 'Inactive';
 }
 
 const rolesHierarchy = [
+    { id: 'Developer', name: 'Developer', permissions: ['System Root', 'Manage Owner', 'Core Access'] },
     { id: 'Owner', name: 'Owner', permissions: ['All Access', 'Role Management', 'System Settings'] },
     { id: 'Admin', name: 'Admin', permissions: ['All Access (except Owner Removal)', 'Product Mgmt', 'User Mgmt'] },
     { id: 'Manager', name: 'Manager', permissions: ['Product Management', 'Assigned Roles', 'Invoices'] },
@@ -27,13 +28,59 @@ const rolesHierarchy = [
     { id: 'Salesman', name: 'Salesman', permissions: ['Invoice Access Only'] },
 ];
 
+const FEATURES = [
+    'Product Management',
+    'Inventory Controls',
+    'Role Management',
+    'Financial Reports',
+    'Payment Settings',
+    'Invoice Access'
+];
+
+type RoleKey = 'Developer' | 'Owner' | 'Admin' | 'Manager' | 'DEO' | 'Salesman';
+
 export default function RoleManagement() {
-    const [users, setUsers] = useState<UserRole[]>([
-        { id: '1', name: 'Super Owner', email: 'owner@cutixa.com', role: 'Owner', status: 'Active' },
-        { id: '2', name: 'Sarah Admin', email: 'admin@cutixa.com', role: 'Admin', status: 'Active' },
-        { id: '3', name: 'Mike Manager', email: 'mike@cutixa.com', role: 'Manager', status: 'Active' },
-        { id: '4', name: 'John Data', email: 'john@cutixa.com', role: 'DEO', status: 'Pending' },
-    ]);
+    const [users, setUsers] = useState<UserRole[]>([]);
+    const [permissions, setPermissions] = useState<Record<string, RoleKey[]>>({
+        'Product Management': ['Owner', 'Admin', 'Manager', 'DEO'],
+        'Inventory Controls': ['Owner', 'Admin', 'DEO'],
+        'Role Management': ['Owner', 'Admin'],
+        'Financial Reports': ['Owner', 'Admin'],
+        'Payment Settings': ['Owner', 'Admin'],
+        'Invoice Access': ['Owner', 'Admin', 'Manager', 'Salesman']
+    });
+
+    React.useEffect(() => {
+        const savedPerms = localStorage.getItem('cutixa_permissions');
+        if (savedPerms) setPermissions(JSON.parse(savedPerms));
+
+        const loadUsers = () => {
+            const saved = localStorage.getItem('cutixa_roles');
+            if (saved) {
+                setUsers(JSON.parse(saved));
+            } else {
+                const initial = [
+                    { id: 'dev-1', name: 'Saeed Ahmad', email: 'esaeedch@gmail.com', role: 'Developer', status: 'Active' },
+                    { id: '1', name: 'Super Owner', email: 'owner@cutixa.com', role: 'Owner', status: 'Active' },
+                    { id: '2', name: 'Sarah Admin', email: 'admin@cutixa.com', role: 'Admin', status: 'Active' },
+                    { id: '3', name: 'Mike Manager', email: 'mike@cutixa.com', role: 'Manager', status: 'Active' },
+                    { id: '4', name: 'John Data', email: 'john@cutixa.com', role: 'DEO', status: 'Pending' },
+                ];
+                setUsers(initial as UserRole[]);
+                localStorage.setItem('cutixa_roles', JSON.stringify(initial));
+            }
+        };
+
+        loadUsers();
+        window.addEventListener('storage', loadUsers);
+        return () => window.removeEventListener('storage', loadUsers);
+    }, []);
+
+    const saveUsers = (newUsers: UserRole[]) => {
+        setUsers(newUsers);
+        localStorage.setItem('cutixa_roles', JSON.stringify(newUsers));
+        window.dispatchEvent(new Event('storage'));
+    };
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingUser, setEditingUser] = useState<UserRole | null>(null);
@@ -52,9 +99,9 @@ export default function RoleManagement() {
         };
 
         if (editingUser) {
-            setUsers(users.map(u => u.id === editingUser.id ? updatedUser : u));
+            saveUsers(users.map(u => u.id === editingUser.id ? updatedUser : u));
         } else {
-            setUsers([...users, updatedUser]);
+            saveUsers([...users, updatedUser]);
         }
 
         setIsModalOpen(false);
@@ -63,7 +110,7 @@ export default function RoleManagement() {
 
     const handleDelete = (id: string) => {
         if (confirm('Remove this staff member?')) {
-            setUsers(users.filter(u => u.id !== id));
+            saveUsers(users.filter(u => u.id !== id));
         }
     };
 
@@ -116,7 +163,7 @@ export default function RoleManagement() {
                                 <td>
                                     <div className={styles.rowActions}>
                                         <button className={styles.editBtn} onClick={() => handleEdit(user)}><Edit size={16} /></button>
-                                        {user.role !== 'Owner' && (
+                                        {user.role !== 'Developer' && (
                                             <button className={styles.deleteBtn} onClick={() => handleDelete(user.id)}><Trash2 size={16} /></button>
                                         )}
                                     </div>
@@ -171,35 +218,43 @@ export default function RoleManagement() {
             )}
 
             <div className={styles.formSection} style={{ marginTop: '3rem' }}>
-                <h3>Permission Matrix</h3>
-                <div className={styles.tableContainer} style={{ background: 'var(--surface)' }}>
+                <div className={styles.controls} style={{ marginBottom: '1rem' }}>
+                    <h3>Dynamic Permission Matrix</h3>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Toggle checkboxes to grant/revoke access in real-time</p>
+                </div>
+                <div className={`${styles.tableContainer} glass`} style={{ background: 'var(--surface)' }}>
                     <table className={styles.table}>
                         <thead>
                             <tr>
                                 <th>Feature</th>
-                                <th>Owner</th>
-                                <th>Admin</th>
-                                <th>Manager</th>
-                                <th>DEO</th>
-                                <th>Salesman</th>
+                                {rolesHierarchy.map(r => <th key={r.id}>{r.name}</th>)}
                             </tr>
                         </thead>
                         <tbody>
-                            {[
-                                'Product Management',
-                                'Inventory Controls',
-                                'Role Management',
-                                'Financial Reports',
-                                'Payment Settings',
-                                'Invoice Access'
-                            ].map(feature => (
+                            {FEATURES.map(feature => (
                                 <tr key={feature}>
                                     <td>{feature}</td>
-                                    <td><CheckCircle2 size={16} color="var(--gold-matte)" /></td>
-                                    <td><CheckCircle2 size={16} color="var(--gold-matte)" /></td>
-                                    <td>{['Product Management', 'Invoice Access'].includes(feature) ? <CheckCircle2 size={16} color="var(--gold-matte)" /> : <Lock size={16} opacity={0.3} />}</td>
-                                    <td>{['Product Management', 'Inventory Controls'].includes(feature) ? <CheckCircle2 size={16} color="var(--gold-matte)" /> : <Lock size={16} opacity={0.3} />}</td>
-                                    <td>{['Invoice Access'].includes(feature) ? <CheckCircle2 size={16} color="var(--gold-matte)" /> : <Lock size={16} opacity={0.3} />}</td>
+                                    {rolesHierarchy.map(role => (
+                                        <td key={role.id} style={{ textAlign: 'center' }}>
+                                            <input
+                                                type="checkbox"
+                                                checked={permissions[feature]?.includes(role.id as RoleKey)}
+                                                disabled={role.id === 'Owner' || role.id === 'Developer'} // Owner and Developer always have all access
+                                                onChange={(e) => {
+                                                    const isChecked = e.target.checked;
+                                                    const current = permissions[feature] || [];
+                                                    const next = isChecked
+                                                        ? [...current, role.id as RoleKey]
+                                                        : current.filter(r => r !== role.id);
+
+                                                    const updated = { ...permissions, [feature]: next };
+                                                    setPermissions(updated);
+                                                    localStorage.setItem('cutixa_permissions', JSON.stringify(updated));
+                                                }}
+                                                className={styles.checkbox}
+                                            />
+                                        </td>
+                                    ))}
                                 </tr>
                             ))}
                         </tbody>

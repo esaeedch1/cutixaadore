@@ -11,7 +11,8 @@ import {
     Clock,
     CheckCircle2,
     Truck,
-    ShoppingBag
+    ShoppingBag,
+    Download
 } from 'lucide-react';
 import styles from './account.module.css';
 
@@ -113,6 +114,23 @@ export default function CustomerAccount() {
                                             <div className={styles.orderInfo}>
                                                 <p>{order.items} Items Purchased</p>
                                                 <h4>PKR {order.total}</h4>
+                                                {(order.status === 'Delivered' || order.status === 'Paid') && (
+                                                    <button style={{
+                                                        marginTop: '10px',
+                                                        padding: '6px 12px',
+                                                        fontSize: '0.8rem',
+                                                        background: 'var(--surface)',
+                                                        border: '1px solid var(--border)',
+                                                        color: 'var(--text-secondary)',
+                                                        borderRadius: '6px',
+                                                        display: 'inline-flex',
+                                                        alignItems: 'center',
+                                                        gap: '5px',
+                                                        cursor: 'pointer'
+                                                    }}>
+                                                        <Download size={14} /> Download Invoice
+                                                    </button>
+                                                )}
                                             </div>
 
                                             <div className={styles.trackingBox}>
