@@ -1780,3 +1780,165 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* ─── Extended stat card helpers ─────────────────────────────────── */
+.statInfo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.statName {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.statChange {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: var(--surface);
+    padding: 2px 8px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+}
+
+/* ─── Search Box with icon ────────────────────────────────────────── */
+.searchBox {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+    max-width: 380px;
+}
+
+.searchBox .input {
+    padding-left: 2.8rem;
+    width: 100%;
+    height: 42px;
+}
+
+.searchIcon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* ─── Page panels ─────────────────────────────────────────────────── */
+.orderPanel,
+.productPanel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* ─── Time filter pills ───────────────────────────────────────────── */
+.timeFilter {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.timeBtn {
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.timeBtn:hover {
+    border-color: var(--gold-matte);
+    color: var(--gold-matte);
+}
+
+.activeTime {
+    background: var(--gold-shining) !important;
+    border-color: transparent !important;
+    color: white !important;
+}
+
+/* ─── Dashboard header title ──────────────────────────────────────── */
+.headerTitle {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-secondary);
+}
+
+/* ─── Activity card ───────────────────────────────────────────────── */
+.activityCard {
+    padding: 1.8rem;
+    border-radius: 20px;
+}
+
+.cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.cardHeader h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+/* ─── Chart section ───────────────────────────────────────────────── */
+.chartSection {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.mainChart {
+    padding: 1.8rem;
+    border-radius: 20px;
+}
+
+.chartWrapper {
+    margin-top: 1rem;
+}
+
+/* ─── Modal close button ──────────────────────────────────────────── */
+.closeBtn {
+    background: transparent;
+    border: none;
+    font-size: 1.8rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    line-height: 1;
+    padding: 0 0.4rem;
+    transition: color 0.2s;
+}
+
+.closeBtn:hover {
+    color: var(--foreground);
+}
+
+/* ─── headerRight ─────────────────────────────────────────────────── */
+.headerLeft,
+.headerRight {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}

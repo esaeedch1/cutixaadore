@@ -98,6 +98,7 @@ export default function ProductManagement() {
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isColumnModalOpen, setIsColumnModalOpen] = useState(false);
+    const [siteCategories, setSiteCategories] = useState<any[]>([]);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [imageRatio, setImageRatio] = useState('1:1');
@@ -170,8 +171,11 @@ export default function ProductManagement() {
         const savedTrash = localStorage.getItem('cutixa_trash');
         if (savedTrash) setTrashProducts(JSON.parse(savedTrash));
 
-        const savedCols = localStorage.getItem('product_columns');
+        const savedCols = localStorage.getItem('cutixa_product_cols');
         if (savedCols) setColumns(JSON.parse(savedCols));
+
+        const savedCats = localStorage.getItem('cutixa_categories');
+        if (savedCats) setSiteCategories(JSON.parse(savedCats));
     }, []);
 
     const formatPrice = (pkrAmount: number) => {
@@ -704,29 +708,29 @@ export default function ProductManagement() {
                                     <label>Volume (ml)</label>
                                     <input name="volume" type="number" className={styles.input} defaultValue={editingProduct?.volume || 0} />
                                 </div>
-                                {/* Combined Category & Subcategory Selection */}
+                                {/* Dynamic Multi-level Category Selection */}
                                 <div className={styles.formGroup} style={{ gridColumn: 'span 2' }}>
-                                    <label>Category & Subcategory Selection *</label>
+                                    <label>Category & Subcategory (Dynamic Sync) *</label>
                                     <select name="categories" className={styles.select} defaultValue={editingProduct?.categories || ''} required>
-                                        <option value="">Select Category/Subcategory...</option>
-                                        {Object.entries(CATEGORIES_DATA).map(([main, items]) => (
-                                            <React.Fragment key={main}>
-                                                <optgroup label={main}>
-                                                    <option value={main}>{main} (Main)</option>
-                                                    {items.map((item, idx) => (
-                                                        typeof item === 'string' ?
-                                                            <option key={idx} value={`${main} > ${item}`}>&nbsp;&nbsp;{item}</option>
-                                                            :
-                                                            <React.Fragment key={idx}>
-                                                                <option value={`${main} > ${item.name}`} disabled>{item.name}</option>
-                                                                {item.sub.map((s, sIdx) => (
-                                                                    <option key={sIdx} value={`${main} > ${item.name} > ${s}`}>&nbsp;&nbsp;&nbsp;&nbsp;{s}</option>
-                                                                ))}
-                                                            </React.Fragment>
-                                                    ))}
-                                                </optgroup>
-                                            </React.Fragment>
-                                        ))}
+                                        <option value="">Select Category...</option>
+                                        {(() => {
+                                            const renderOptions = (list: any[], prefix = ''): any[] => {
+                                                let options: any[] = [];
+                                                list.forEach(cat => {
+                                                    const value = prefix ? `${prefix} > ${cat.name}` : cat.name;
+                                                    options.push(
+                                                        <option key={cat.id} value={value}>
+                                                            {prefix ? '  '.repeat(prefix.split('>').length) : ''}{cat.name}
+                                                        </option>
+                                                    );
+                                                    if (cat.subcategories && cat.subcategories.length > 0) {
+                                                        options = options.concat(renderOptions(cat.subcategories, value));
+                                                    }
+                                                });
+                                                return options;
+                                            };
+                                            return renderOptions(siteCategories);
+                                        })()}
                                     </select>
                                 </div>
 

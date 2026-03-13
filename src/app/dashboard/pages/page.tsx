@@ -16,6 +16,13 @@ import {
 } from 'lucide-react';
 import styles from '../dashboard.module.css';
 
+interface CategoryItem {
+    id: string;
+    name: string;
+    isVisible: boolean;
+    subcategories: CategoryItem[];
+}
+
 interface PageItem {
     id: string;
     name: string;
@@ -83,54 +90,51 @@ export default function PageManagement() {
         const savedCats = localStorage.getItem('cutixa_categories');
         if (savedCats) setCategories(JSON.parse(savedCats));
         else {
-            const initialCats = [
+            const initialCats: CategoryItem[] = [
                 {
                     id: 'cat_men',
                     name: 'Men',
                     isVisible: true,
-                    type: 'Category',
                     subcategories: [
-                        { id: 'men_pents', name: 'Pents', isVisible: true },
-                        { id: 'men_shirts', name: 'Shirts', isVisible: true },
-                        { id: 'men_kurta', name: 'Kurta', isVisible: true },
-                        { id: 'men_stiched', name: 'Stiched', isVisible: true },
-                        { id: 'men_unstiched', name: 'Unstiched', isVisible: true },
-                        { id: 'men_sox', name: 'Sox', isVisible: true },
-                        { id: 'men_belts', name: 'Belts', isVisible: true },
-                        { id: 'men_wallets', name: 'Wallets', isVisible: true },
-                        { id: 'men_watches', name: 'Watches', isVisible: true },
-                        { id: 'men_rings', name: 'Rings', isVisible: true },
-                        { id: 'men_caps', name: 'Caps', isVisible: true }
+                        { id: 'men_pents', name: 'Pents', isVisible: true, subcategories: [] },
+                        { id: 'men_shirts', name: 'Shirts', isVisible: true, subcategories: [] },
+                        { id: 'men_kurta', name: 'Kurta', isVisible: true, subcategories: [] },
+                        { id: 'men_stiched', name: 'Stiched', isVisible: true, subcategories: [] },
+                        { id: 'men_unstiched', name: 'Unstiched', isVisible: true, subcategories: [] },
+                        { id: 'men_sox', name: 'Sox', isVisible: true, subcategories: [] },
+                        { id: 'men_belts', name: 'Belts', isVisible: true, subcategories: [] },
+                        { id: 'men_wallets', name: 'Wallets', isVisible: true, subcategories: [] },
+                        { id: 'men_watches', name: 'Watches', isVisible: true, subcategories: [] },
+                        { id: 'men_rings', name: 'Rings', isVisible: true, subcategories: [] },
+                        { id: 'men_caps', name: 'Caps', isVisible: true, subcategories: [] }
                     ]
                 },
                 {
                     id: 'cat_women',
                     name: 'Women',
                     isVisible: true,
-                    type: 'Category',
                     subcategories: [
-                        { id: 'women_pents', name: 'Pents', isVisible: true },
-                        { id: 'women_shirts', name: 'Shirts', isVisible: true },
-                        { id: 'women_ladies_clothing', name: 'Ladies Clothing (Stiched, Unstiched)', isVisible: true },
-                        { id: 'women_kurta', name: 'Kurta', isVisible: true },
-                        { id: 'women_sox', name: 'Sox', isVisible: true },
-                        { id: 'women_belts', name: 'Belts', isVisible: true },
-                        { id: 'women_wallets', name: 'Wallets/ Purses/ Clutch', isVisible: true },
-                        { id: 'women_watches', name: 'Watches', isVisible: true },
-                        { id: 'women_caps', name: 'Caps', isVisible: true },
-                        { id: 'women_jewellery', name: 'Jewellery (Ear Rings, Nose Pins, Rings, Necklace)', isVisible: true }
+                        { id: 'women_pents', name: 'Pents', isVisible: true, subcategories: [] },
+                        { id: 'women_shirts', name: 'Shirts', isVisible: true, subcategories: [] },
+                        { id: 'women_ladies_clothing', name: 'Ladies Clothing (Stiched, Unstiched)', isVisible: true, subcategories: [] },
+                        { id: 'women_kurta', name: 'Kurta', isVisible: true, subcategories: [] },
+                        { id: 'women_sox', name: 'Sox', isVisible: true, subcategories: [] },
+                        { id: 'women_belts', name: 'Belts', isVisible: true, subcategories: [] },
+                        { id: 'women_wallets', name: 'Wallets/ Purses/ Clutch', isVisible: true, subcategories: [] },
+                        { id: 'women_watches', name: 'Watches', isVisible: true, subcategories: [] },
+                        { id: 'women_caps', name: 'Caps', isVisible: true, subcategories: [] },
+                        { id: 'women_jewellery', name: 'Jewellery (Ear Rings, Nose Pins, Rings, Necklace)', isVisible: true, subcategories: [] }
                     ]
                 },
                 {
                     id: 'cat_beauty',
                     name: 'Beauty and Personal Care',
                     isVisible: true,
-                    type: 'Category',
                     subcategories: [
-                        { id: 'beauty_extracts', name: 'Extracts (Glycerites, Oleolites)', isVisible: true },
-                        { id: 'beauty_skincare', name: 'Skin Care', isVisible: true },
-                        { id: 'beauty_creams', name: 'Beauty Creams and Soaps', isVisible: true },
-                        { id: 'beauty_haircare', name: 'Hair Care', isVisible: true }
+                        { id: 'beauty_extracts', name: 'Extracts (Glycerites, Oleolites)', isVisible: true, subcategories: [] },
+                        { id: 'beauty_skincare', name: 'Skin Care', isVisible: true, subcategories: [] },
+                        { id: 'beauty_creams', name: 'Beauty Creams and Soaps', isVisible: true, subcategories: [] },
+                        { id: 'beauty_haircare', name: 'Hair Care', isVisible: true, subcategories: [] }
                     ]
                 }
             ];
@@ -221,26 +225,101 @@ export default function PageManagement() {
         saveAll(newPages, categories);
     };
 
-    const toggleCategoryVisibility = (id: string) => {
-        const newCats = categories.map(cat =>
-            cat.id === id ? { ...cat, isVisible: !cat.isVisible } : cat
-        );
-        saveAll(items, newCats);
+    const findAndToggleVisibility = (list: CategoryItem[], id: string): CategoryItem[] => {
+        return list.map(item => {
+            if (item.id === id) return { ...item, isVisible: !item.isVisible };
+            if (item.subcategories.length > 0) {
+                return { ...item, subcategories: findAndToggleVisibility(item.subcategories, id) };
+            }
+            return item;
+        });
     };
 
-    const toggleSubVisibility = (catId: string, subId: string) => {
-        const newCats = categories.map(cat => {
-            if (cat.id === catId) {
-                return {
-                    ...cat,
-                    subcategories: cat.subcategories.map((sub: any) =>
-                        sub.id === subId ? { ...sub, isVisible: !sub.isVisible } : sub
-                    )
-                };
+    const toggleCategoryVisibility = (id: string) => {
+        saveAll(items, findAndToggleVisibility(categories, id));
+    };
+
+    const findAndAddSub = (list: CategoryItem[], parentId: string, newSub: CategoryItem): CategoryItem[] => {
+        return list.map(item => {
+            if (item.id === parentId) return { ...item, subcategories: [...item.subcategories, newSub] };
+            if (item.subcategories.length > 0) {
+                return { ...item, subcategories: findAndAddSub(item.subcategories, parentId, newSub) };
             }
-            return cat;
+            return item;
         });
-        saveAll(items, newCats);
+    };
+
+    const addSubcategory = (parentId: string) => {
+        const name = prompt('Enter subcategory name:');
+        if (name) {
+            const newSub: CategoryItem = {
+                id: Math.random().toString(36).substr(2, 9),
+                name,
+                isVisible: true,
+                subcategories: []
+            };
+            saveAll(items, findAndAddSub(categories, parentId, newSub));
+        }
+    };
+
+    const findAndRemove = (list: CategoryItem[], id: string): CategoryItem[] => {
+        return list.filter(item => item.id !== id).map(item => ({
+            ...item,
+            subcategories: findAndRemove(item.subcategories, id)
+        }));
+    };
+
+    const removeCategoryItem = (id: string) => {
+        if (confirm('Are you sure you want to remove this category?')) {
+            saveAll(items, findAndRemove(categories, id));
+        }
+    };
+
+    const CategoryTree = ({ list, depth = 0 }: { list: CategoryItem[], depth?: number }) => {
+        return (
+            <div style={{ marginLeft: depth > 0 ? '1.5rem' : 0, display: 'grid', gap: '5px', marginTop: depth > 0 ? '5px' : 0 }}>
+                {list.map(cat => (
+                    <div key={cat.id} className={styles.categoryGroup} style={{
+                        marginBottom: depth === 0 ? '1rem' : 0,
+                        paddingBottom: depth === 0 ? '1rem' : 0,
+                        borderBottom: depth === 0 ? '1px solid var(--border)' : 'none'
+                    }}>
+                        <div className={styles.configItem} style={{
+                            padding: depth > 0 ? '4px 8px' : '8px 12px',
+                            background: depth > 0 ? 'rgba(255,255,255,0.02)' : 'transparent',
+                            border: depth > 0 ? 'none' : '1px solid var(--border)'
+                        }}>
+                            <div className={styles.configInfo}>
+                                <p className={styles.configName} style={{
+                                    fontWeight: depth === 0 ? 700 : 400,
+                                    color: depth === 0 ? 'var(--gold-matte)' : 'var(--text-primary)',
+                                    fontSize: depth === 0 ? '1rem' : '0.85rem'
+                                }}>{cat.name}</p>
+                            </div>
+                            <div className={styles.itemRowActions}>
+                                <button
+                                    onClick={() => addSubcategory(cat.id)}
+                                    className={styles.secondaryBtn}
+                                    style={{ padding: '2px 6px', fontSize: '10px' }}
+                                    title="Add Sub-subcategory"
+                                >
+                                    + Sub
+                                </button>
+                                <button onClick={() => toggleCategoryVisibility(cat.id)} className={cat.isVisible ? styles.visibleBtn : styles.hiddenBtn}>
+                                    {cat.isVisible ? <Eye size={depth === 0 ? 18 : 14} /> : <EyeOff size={depth === 0 ? 18 : 14} />}
+                                </button>
+                                <button onClick={() => removeCategoryItem(cat.id)} className={styles.deleteBtn}>
+                                    <Trash2 size={depth === 0 ? 16 : 12} />
+                                </button>
+                            </div>
+                        </div>
+                        {cat.subcategories.length > 0 && (
+                            <CategoryTree list={cat.subcategories} depth={depth + 1} />
+                        )}
+                    </div>
+                ))}
+            </div>
+        );
     };
 
     const openEditor = (page: PageItem) => {
@@ -305,48 +384,7 @@ export default function PageManagement() {
                         </div>
                     </div>
                     <div className={styles.configList}>
-                        {categories.map(cat => (
-                            <div key={cat.id} className={styles.categoryGroup} style={{ marginBottom: '1rem', paddingBottom: '1rem', borderBottom: '1px solid var(--border)' }}>
-                                <div className={styles.configItem}>
-                                    <div className={styles.configInfo}>
-                                        <p className={styles.configName} style={{ fontWeight: 700, color: 'var(--gold-matte)' }}>{cat.name}</p>
-                                        <span className={styles.configDate}>Main Category</span>
-                                    </div>
-                                    <div className={styles.itemRowActions}>
-                                        <button onClick={() => toggleCategoryVisibility(cat.id)} className={cat.isVisible ? styles.visibleBtn : styles.hiddenBtn}>
-                                            {cat.isVisible ? <Eye size={18} /> : <EyeOff size={18} />}
-                                        </button>
-                                        <button onClick={() => removeCategory(cat.id)} className={styles.deleteBtn}><Trash2 size={16} /></button>
-                                    </div>
-                                </div>
-                                <div style={{ marginLeft: '2rem', marginTop: '0.5rem', display: 'grid', gap: '5px' }}>
-                                    {cat.subcategories.map((sub: any) => (
-                                        <div key={sub.id} className={styles.configItem} style={{ padding: '4px 8px', border: 'none', background: 'rgba(255,255,255,0.03)' }}>
-                                            <span style={{ fontSize: '0.8rem', opacity: 0.8 }}>{sub.name}</span>
-                                            <div className={styles.itemRowActions}>
-                                                <button onClick={() => toggleSubVisibility(cat.id, sub.id)} className={sub.isVisible ? styles.visibleBtn : styles.hiddenBtn} style={{ padding: '2px' }}>
-                                                    {sub.isVisible ? <Eye size={14} /> : <EyeOff size={14} />}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                    <button
-                                        className={styles.secondaryBtn}
-                                        style={{ fontSize: '10px', padding: '4px', width: 'fit-content' }}
-                                        onClick={() => {
-                                            const name = prompt('Enter subcategory name:');
-                                            if (name) {
-                                                const newSub = { id: Math.random().toString(36).substr(2, 9), name, isVisible: true };
-                                                const newCats = categories.map(c => c.id === cat.id ? { ...c, subcategories: [...c.subcategories, newSub] } : c);
-                                                saveAll(items, newCats);
-                                            }
-                                        }}
-                                    >
-                                        + Sub
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
+                        <CategoryTree list={categories} />
                     </div>
                 </div>
             </div>

@@ -1,55 +1,58 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
-    Search,
-    Download,
-    Filter,
-    FileText,
-    ExternalLink,
-    CheckCircle,
-    Clock,
-    User
+    Search, Download, FileText, ExternalLink, CheckCircle,
+    Clock, User, RefreshCw, TrendingUp, AlertTriangle, Printer
 } from 'lucide-react';
 import styles from '../dashboard.module.css';
 
 interface Invoice {
     id: string;
+    orderId?: string;
     customerName: string;
     customerEmail: string;
     date: string;
     amount: number;
     status: 'Paid' | 'Pending' | 'Overdue';
+    paymentMethod?: string;
+    items?: any[];
 }
 
 export default function InvoiceManagement() {
     const [invoices, setInvoices] = useState<Invoice[]>([]);
-    const [idFormat, setIdFormat] = useState('DDMMYYYY/HH:mm/001');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filterStatus, setFilterStatus] = useState('all');
+    const [idFormat] = useState('DDMMYYYY/HH:mm/count');
 
-    React.useEffect(() => {
-        const loadInvoices = () => {
-            const saved = localStorage.getItem('cutixa_invoices');
-            const savedFormat = localStorage.getItem('cutixa_invoice_format');
-            if (savedFormat) setIdFormat(savedFormat);
-
-            if (saved) {
-                setInvoices(JSON.parse(saved));
-            } else {
-                const initial = [
-                    { id: '11032026/03:10/001', customerName: 'Ali Khan', customerEmail: 'ali@example.com', date: '2026-03-10', amount: 45, status: 'Paid' },
-                    { id: '09032026/15:20/002', customerName: 'Sara Ahmed', customerEmail: 'sara@example.com', date: '2026-03-09', amount: 120, status: 'Paid' },
-                ];
-                setInvoices(initial as Invoice[]);
-                localStorage.setItem('cutixa_invoices', JSON.stringify(initial));
-            }
-        };
-
-        loadInvoices();
-        window.addEventListener('storage', loadInvoices);
-        return () => window.removeEventListener('storage', loadInvoices);
+    const loadInvoices = useCallback(() => {
+        const saved = localStorage.getItem('cutixa_invoices');
+        if (saved) {
+            setInvoices(JSON.parse(saved));
+        } else {
+            const initial: Invoice[] = [
+                { id: '11032026/12:10/001', customerName: 'Ali Khan', customerEmail: 'ali@example.com', date: '2026-03-11', amount: 4500, status: 'Paid', paymentMethod: 'JazzCash' },
+                { id: '09032026/15:20/002', customerName: 'Sara Ahmed', customerEmail: 'sara@example.com', date: '2026-03-09', amount: 1200, status: 'Pending', paymentMethod: 'Bank Transfer' },
+            ];
+            setInvoices(initial);
+            localStorage.setItem('cutixa_invoices', JSON.stringify(initial));
+        }
     }, []);
 
-    const generateCustomID = () => {
+    useEffect(() => {
+        loadInvoices();
+        const onStorage = () => loadInvoices();
+        window.addEventListener('storage', onStorage);
+        window.addEventListener('cutixa_new_order', onStorage);
+        window.addEventListener('cutixa_payment_confirmed', onStorage);
+        return () => {
+            window.removeEventListener('storage', onStorage);
+            window.removeEventListener('cutixa_new_order', onStorage);
+            window.removeEventListener('cutixa_payment_confirmed', onStorage);
+        };
+    }, [loadInvoices]);
+
+    const generateID = () => {
         const now = new Date();
         const dd = String(now.getDate()).padStart(2, '0');
         const mm = String(now.getMonth() + 1).padStart(2, '0');
@@ -62,107 +65,215 @@ export default function InvoiceManagement() {
 
     const handleCreateInvoice = () => {
         const newInv: Invoice = {
-            id: generateCustomID(),
+            id: generateID(),
             customerName: 'New Customer',
             customerEmail: 'customer@example.com',
             date: new Date().toISOString().split('T')[0],
             amount: 0,
-            status: 'Pending'
+            status: 'Pending',
         };
-        const updated = [...invoices, newInv];
+        const updated = [newInv, ...invoices];
         setInvoices(updated);
         localStorage.setItem('cutixa_invoices', JSON.stringify(updated));
         window.dispatchEvent(new Event('storage'));
-        alert('New Invoice Generated with ID: ' + newInv.id);
     };
 
-    const [searchTerm, setSearchTerm] = useState('');
+    const updateStatus = (id: string, status: Invoice['status']) => {
+        const updated = invoices.map(inv => inv.id === id ? { ...inv, status } : inv);
+        setInvoices(updated);
+        localStorage.setItem('cutixa_invoices', JSON.stringify(updated));
+        window.dispatchEvent(new Event('storage'));
+    };
 
-    const filteredInvoices = invoices.filter(inv =>
-        inv.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        inv.customerName.toLowerCase().includes(searchTerm.toLowerCase())
+    const printInvoice = (inv: Invoice) => {
+        const w = window.open('', '_blank');
+        w?.document.write(`<html><head><title>Invoice ${inv.id}</title><style>
+            body{font-family:'Georgia',serif;padding:50px;max-width:650px;margin:0 auto;color:#1a1a1a}
+            h1{color:#c5a059;font-size:2.5rem;margin:0}
+            .brand{border-bottom:2px solid #c5a059;padding-bottom:1rem;margin-bottom:2rem}
+            .info{display:flex;justify-content:space-between;margin-bottom:2rem}
+            table{width:100%;border-collapse:collapse;margin:1.5rem 0}
+            th{background:#f9f6ee;padding:12px;text-align:left;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em}
+            td{padding:12px;border-bottom:1px solid #eee}
+            .total{text-align:right;font-size:1.3rem;font-weight:bold;color:#c5a059;margin-top:1rem}
+            .status{display:inline-block;padding:4px 12px;border-radius:20px;font-size:0.85rem;font-weight:600;
+                background:${inv.status === 'Paid' ? 'rgba(34,197,94,0.1)' : 'rgba(234,179,8,0.1)'};
+                color:${inv.status === 'Paid' ? '#16a34a' : '#b45309'}}
+            .footer{margin-top:3rem;padding-top:1rem;border-top:1px solid #eee;font-size:0.8rem;color:#666;text-align:center}
+        </style></head><body>
+            <div class="brand"><h1>CutiXa Adore</h1><p style="color:#888;margin:4px 0 0">Love Your Skin</p></div>
+            <div class="info">
+                <div><h3 style="margin:0 0 0.5rem">INVOICE</h3>
+                    <p style="margin:0;font-family:monospace;color:#c5a059">${inv.id}</p>
+                    ${inv.orderId ? `<p style="margin:4px 0 0;font-size:0.85rem;color:#888">Order: ${inv.orderId}</p>` : ''}
+                </div>
+                <div style="text-align:right">
+                    <p style="margin:0"><strong>${inv.customerName}</strong></p>
+                    <p style="margin:4px 0;color:#888;font-size:0.9rem">${inv.customerEmail}</p>
+                    <p style="margin:4px 0;color:#888;font-size:0.9rem">Date: ${inv.date}</p>
+                </div>
+            </div>
+            <table><tr><th>Description</th><th>Amount</th></tr>
+            ${inv.items && inv.items.length > 0
+                ? inv.items.map((item: any) =>
+                    `<tr><td>${item.name} × ${item.qty || 1}</td><td>PKR ${((item.price || 0) * (item.qty || 1)).toLocaleString()}</td></tr>`
+                ).join('')
+                : `<tr><td>Services / Products</td><td>PKR ${inv.amount.toLocaleString()}</td></tr>`
+            }
+            </table>
+            <p class="total">Total: PKR ${inv.amount.toLocaleString()}</p>
+            <p>Status: <span class="status">${inv.status}</span></p>
+            ${inv.paymentMethod ? `<p>Payment Method: ${inv.paymentMethod}</p>` : ''}
+            <div class="footer">CutiXa Adore · Thank you for your business!</div>
+        </body></html>`);
+        w?.document.close();
+        w?.print();
+    };
+
+    const filtered = invoices.filter(inv =>
+        (inv.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            inv.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (inv.orderId || '').toLowerCase().includes(searchTerm.toLowerCase())) &&
+        (filterStatus === 'all' || inv.status === filterStatus)
     );
+
+    // ─── Computed real summary numbers ─────────────────────────────────────
+    const totalInvoiced = invoices.reduce((s, inv) => s + inv.amount, 0);
+    const totalCollected = invoices.filter(inv => inv.status === 'Paid').reduce((s, inv) => s + inv.amount, 0);
+    const outstanding = invoices.filter(inv => inv.status !== 'Paid').reduce((s, inv) => s + inv.amount, 0);
+    const overdueCount = invoices.filter(inv => inv.status === 'Overdue').length;
 
     return (
         <div className={styles.productPanel}>
-            <div className={styles.controls}>
-                <div className={styles.searchBox}>
-                    <Search size={18} className={styles.searchIcon} />
-                    <input
-                        type="text"
-                        placeholder="Search invoices by ID or Customer..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className={styles.input}
-                    />
-                </div>
 
-                <div className={styles.actions}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', background: 'var(--surface)', padding: '5px 10px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                        <span style={{ fontSize: '0.75rem' }}>ID Format:</span>
+            {/* ─── Summary Cards ─── */}
+            <div className={styles.statsGrid} style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', marginBottom: '2rem' }}>
+                {[
+                    { label: 'Total Invoiced', value: `PKR ${totalInvoiced.toLocaleString()}`, color: 'var(--gold-matte)', icon: FileText },
+                    { label: 'Collected', value: `PKR ${totalCollected.toLocaleString()}`, color: '#22c55e', icon: CheckCircle },
+                    { label: 'Outstanding', value: `PKR ${outstanding.toLocaleString()}`, color: '#eab308', icon: Clock },
+                    { label: 'Overdue', value: overdueCount, color: '#ef4444', icon: AlertTriangle },
+                ].map(s => {
+                    const Icon = s.icon;
+                    return (
+                        <div key={s.label} className={`${styles.statCard} glass`}>
+                            <div className={styles.statInfo}>
+                                <Icon size={18} color={s.color} />
+                                <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>{s.label}</span>
+                            </div>
+                            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: s.color, marginTop: '0.5rem' }}>{s.value}</h3>
+                        </div>
+                    );
+                })}
+            </div>
+
+            {/* ─── Controls ─── */}
+            <div className={styles.controls} style={{ flexWrap: 'wrap', gap: '1rem' }}>
+                <div style={{ display: 'flex', gap: '1rem', flex: 1, flexWrap: 'wrap' }}>
+                    <div className={styles.searchBox}>
+                        <Search size={18} className={styles.searchIcon} />
                         <input
-                            value={idFormat}
-                            onChange={(e) => {
-                                setIdFormat(e.target.value);
-                                localStorage.setItem('cutixa_invoice_format', e.target.value);
-                            }}
-                            style={{ background: 'transparent', border: 'none', color: 'var(--gold-matte)', fontSize: '0.75rem', width: '130px' }}
+                            type="text"
+                            placeholder="Search by Invoice ID, Customer, or Order..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className={styles.input}
                         />
                     </div>
+                    <select
+                        className={styles.select}
+                        value={filterStatus}
+                        onChange={e => setFilterStatus(e.target.value)}
+                        style={{ minWidth: '130px' }}
+                    >
+                        <option value="all">All Statuses</option>
+                        <option value="Paid">Paid</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Overdue">Overdue</option>
+                    </select>
+                </div>
+                <div className={styles.actions}>
+                    <button className={styles.secondaryBtn} onClick={loadInvoices}>
+                        <RefreshCw size={16} /> Refresh
+                    </button>
                     <button className={styles.primaryBtn} onClick={handleCreateInvoice}>
-                        <FileText size={18} /> New Invoice
+                        <FileText size={16} /> New Invoice
                     </button>
                 </div>
             </div>
 
+            {/* ─── Table ─── */}
             <div className={`${styles.tableContainer} glass`}>
                 <table className={styles.table}>
                     <thead>
                         <tr>
                             <th>Invoice ID</th>
+                            <th>Order ID</th>
                             <th>Customer</th>
                             <th>Date</th>
                             <th>Amount</th>
+                            <th>Method</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredInvoices.map((inv) => (
+                        {filtered.length === 0 ? (
+                            <tr><td colSpan={8} style={{ textAlign: 'center', padding: '3rem', opacity: 0.4 }}>
+                                No invoices found
+                            </td></tr>
+                        ) : filtered.map((inv) => (
                             <tr key={inv.id} className={styles.productRow}>
                                 <td><span className={styles.skuTag}>{inv.id}</span></td>
                                 <td>
+                                    {inv.orderId
+                                        ? <span className={styles.skuTag} style={{ opacity: 0.8 }}>{inv.orderId}</span>
+                                        : <span style={{ opacity: 0.3 }}>—</span>
+                                    }
+                                </td>
+                                <td>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <div style={{ width: '32px', height: '32px', background: 'var(--border)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                            <User size={16} />
+                                        <div style={{ width: 30, height: 30, background: 'var(--border)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                            <User size={14} />
                                         </div>
                                         <div>
-                                            <p style={{ margin: 0, fontWeight: 500 }}>{inv.customerName}</p>
-                                            <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{inv.customerEmail}</p>
+                                            <p style={{ margin: 0, fontWeight: 500, fontSize: '0.85rem' }}>{inv.customerName}</p>
+                                            <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-secondary)' }}>{inv.customerEmail}</p>
                                         </div>
                                     </div>
                                 </td>
-                                <td>{inv.date}</td>
-                                <td>PKR {inv.amount}</td>
+                                <td style={{ fontSize: '0.85rem' }}>{inv.date}</td>
+                                <td style={{ fontWeight: 700, color: 'var(--gold-matte)' }}>
+                                    PKR {inv.amount.toLocaleString()}
+                                </td>
+                                <td style={{ fontSize: '0.8rem', opacity: 0.7 }}>
+                                    {inv.paymentMethod || '—'}
+                                </td>
                                 <td>
-                                    <span style={{
-                                        padding: '4px 10px',
-                                        borderRadius: '50px',
-                                        fontSize: '0.75rem',
-                                        background: inv.status === 'Paid' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(234, 179, 8, 0.1)',
-                                        color: inv.status === 'Paid' ? '#22c55e' : '#eab308',
-                                        border: `1px solid ${inv.status === 'Paid' ? 'rgba(34, 197, 94, 0.2)' : 'rgba(234, 179, 8, 0.2)'}`
-                                    }}>
-                                        {inv.status}
-                                    </span>
+                                    <select
+                                        value={inv.status}
+                                        onChange={e => updateStatus(inv.id, e.target.value as Invoice['status'])}
+                                        style={{
+                                            fontSize: '0.75rem', padding: '4px 8px', borderRadius: '20px',
+                                            border: '1px solid var(--border)', background: inv.status === 'Paid'
+                                                ? 'rgba(34,197,94,0.1)' : inv.status === 'Overdue'
+                                                    ? 'rgba(239,68,68,0.1)' : 'rgba(234,179,8,0.1)',
+                                            color: inv.status === 'Paid' ? '#22c55e' : inv.status === 'Overdue' ? '#ef4444' : '#eab308',
+                                            fontWeight: 700, cursor: 'pointer', outline: 'none'
+                                        }}
+                                    >
+                                        <option value="Paid">Paid</option>
+                                        <option value="Pending">Pending</option>
+                                        <option value="Overdue">Overdue</option>
+                                    </select>
                                 </td>
                                 <td>
                                     <div className={styles.rowActions}>
-                                        <button className={styles.editBtn} title="Download PDF" onClick={() => alert('Generating Invoice PDF...')}>
-                                            <Download size={16} />
+                                        <button className={styles.editBtn} title="Print Invoice" onClick={() => printInvoice(inv)}>
+                                            <Printer size={16} />
                                         </button>
-                                        <button className={styles.editBtn} title="View Details">
-                                            <ExternalLink size={16} />
+                                        <button className={styles.editBtn} title="Download">
+                                            <Download size={16} />
                                         </button>
                                     </div>
                                 </td>
@@ -172,43 +283,10 @@ export default function InvoiceManagement() {
                 </table>
             </div>
 
-            <div className={styles.grid2} style={{ marginTop: '2rem' }}>
-                <div className={`${styles.card} glass`}>
-                    <div className={styles.cardHeader}>
-                        <div className={styles.titleWithIcon}>
-                            <CheckCircle size={20} className={styles.statIcon} style={{ color: '#22c55e' }} />
-                            <h3>Invoice Summary</h3>
-                        </div>
-                    </div>
-                    <div style={{ padding: '1rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                            <span>Total Invoiced</span>
-                            <span style={{ fontWeight: 600 }}>PKR 225</span>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                            <span>Total Collected</span>
-                            <span style={{ fontWeight: 600, color: '#22c55e' }}>PKR 165</span>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <span>Outstanding</span>
-                            <span style={{ fontWeight: 600, color: '#eab308' }}>PKR 60</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div className={`${styles.card} glass`}>
-                    <div className={styles.cardHeader}>
-                        <div className={styles.titleWithIcon}>
-                            <Clock size={20} className={styles.statIcon} style={{ color: '#eab308' }} />
-                            <h3>Recent Activity</h3>
-                        </div>
-                    </div>
-                    <div className={styles.configList} style={{ padding: '1rem' }}>
-                        <p style={{ fontSize: '0.85rem' }}>• {generateCustomID()} was generated for Zainab Bibi</p>
-                        <p style={{ fontSize: '0.85rem' }}>• Payment received for {generateCustomID()}</p>
-                        <p style={{ fontSize: '0.85rem' }}>• Ali Khan downloaded invoice {generateCustomID()}</p>
-                    </div>
-                </div>
+            {/* ─── Legend ─── */}
+            <div style={{ marginTop: '1rem', fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
+                <span>📊 Invoice ID format: <code style={{ color: 'var(--gold-matte)' }}>{idFormat}</code></span>
+                <span>🔄 Invoices auto-generated on checkout · Synced with Orders in real-time</span>
             </div>
         </div>
     );
