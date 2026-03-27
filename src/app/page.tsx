@@ -31,17 +31,49 @@ export default function LandingPage() {
   const [selectedCurrency, setSelectedCurrency] = useState('PKR');
   const router = useRouter();
 
+  React.useEffect(() => {
+    // If we're on the .pk domain, automatically set Pakistan and redirect to shop
+    if (typeof window !== 'undefined' && window.location.hostname.includes('cutixaadore.pk')) {
+      localStorage.setItem('userCountry', 'Pakistan');
+      localStorage.setItem('userCurrency', 'PKR');
+      router.push('/shop');
+    }
+  }, [router]);
+
   const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const country = countries.find(c => c.name === e.target.value);
-    setSelectedCountry(e.target.value);
+    const newVal = e.target.value;
+    const country = countries.find(c => c.name === newVal);
+    setSelectedCountry(newVal);
     if (country) {
       setSelectedCurrency(country.currency);
+
+      // If Pakistan is selected, redirect to .pk domain in production
+      if (newVal === 'Pakistan' && typeof window !== 'undefined' && !window.location.hostname.includes('cutixaadore.pk')) {
+        localStorage.setItem('userCountry', 'Pakistan');
+        localStorage.setItem('userCurrency', 'PKR');
+        // Only redirect in production
+        if (process.env.NODE_ENV === 'production') {
+          window.location.href = `https://cutixaadore.pk/shop`;
+        } else {
+          router.push('/shop');
+        }
+        return;
+      }
     }
   };
 
   const handleEnterShop = () => {
     localStorage.setItem('userCountry', selectedCountry);
     localStorage.setItem('userCurrency', selectedCurrency);
+
+    // Check if Pakistan is selected and we're not already on the .pk domain
+    if (selectedCountry === 'Pakistan' && typeof window !== 'undefined' && !window.location.hostname.includes('cutixaadore.pk')) {
+      if (process.env.NODE_ENV === 'production') {
+        window.location.href = `https://cutixaadore.pk/shop`;
+        return;
+      }
+    }
+
     router.push('/shop');
   };
 

@@ -332,7 +332,14 @@ export default function ShopPage() {
 
     useEffect(() => {
         const savedCurrency = localStorage.getItem('userCurrency');
-        if (savedCurrency) setCurrency(savedCurrency);
+        const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
+        const isPkDomain = hostname.includes('cutixaadore.pk');
+
+        if (isPkDomain) {
+            setCurrency('PKR');
+        } else if (savedCurrency) {
+            setCurrency(savedCurrency);
+        }
 
         // Load persisted cart
         const savedCart = localStorage.getItem('cutixa_cart');

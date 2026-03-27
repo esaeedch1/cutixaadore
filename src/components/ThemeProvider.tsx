@@ -14,6 +14,15 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>('dark');
 
+  const updateThemeAttributes = (newTheme: Theme) => {
+    const root = window.document.documentElement;
+    if (newTheme === 'system') {
+      root.removeAttribute('data-theme');
+    } else {
+      root.setAttribute('data-theme', newTheme);
+    }
+  };
+
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') as Theme | null;
     if (savedTheme) {
@@ -23,15 +32,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       updateThemeAttributes('dark');
     }
   }, []);
-
-  const updateThemeAttributes = (newTheme: Theme) => {
-    const root = window.document.documentElement;
-    if (newTheme === 'system') {
-      root.removeAttribute('data-theme');
-    } else {
-      root.setAttribute('data-theme', newTheme);
-    }
-  };
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);

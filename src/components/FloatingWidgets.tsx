@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { MessageCircle, X, Send } from 'lucide-react';
-import Image from 'next/image';
 
 export function FloatingWidgets() {
     const [isChatOpen, setIsChatOpen] = useState(false);
