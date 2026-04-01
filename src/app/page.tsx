@@ -46,34 +46,13 @@ export default function LandingPage() {
     setSelectedCountry(newVal);
     if (country) {
       setSelectedCurrency(country.currency);
-
-      // If Pakistan is selected, redirect to .pk domain in production
-      if (newVal === 'Pakistan' && typeof window !== 'undefined' && !window.location.hostname.includes('cutixaadore.pk')) {
-        localStorage.setItem('userCountry', 'Pakistan');
-        localStorage.setItem('userCurrency', 'PKR');
-        // Only redirect in production
-        if (process.env.NODE_ENV === 'production') {
-          window.location.href = `https://cutixaadore.pk/shop`;
-        } else {
-          router.push('/shop');
-        }
-        return;
-      }
     }
   };
 
   const handleEnterShop = () => {
     localStorage.setItem('userCountry', selectedCountry);
     localStorage.setItem('userCurrency', selectedCurrency);
-
-    // Check if Pakistan is selected and we're not already on the .pk domain
-    if (selectedCountry === 'Pakistan' && typeof window !== 'undefined' && !window.location.hostname.includes('cutixaadore.pk')) {
-      if (process.env.NODE_ENV === 'production') {
-        window.location.href = `https://cutixaadore.pk/shop`;
-        return;
-      }
-    }
-
+    // Stay on current domain to ensure functionality
     router.push('/shop');
   };
 
