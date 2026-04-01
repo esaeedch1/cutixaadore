@@ -1,0 +1,6 @@
+1:"$Sreact.fragment"
+2:I[22016,["/_next/static/chunks/36181f50d53b6c25.js","/_next/static/chunks/7c92e96509cd355e.js"],""]
+3:I[97367,["/_next/static/chunks/ff1a16fafef87110.js","/_next/static/chunks/a2dfb6fc5208ab9b.js"],"OutletBoundary"]
+4:"$Sreact.suspense"
+0:{"buildId":"a3foHF0DpZVqBh3ttpQ63","rsc":["$","$1","c",{"children":[["$","div",null,{"style":{"display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center","height":"100vh","textAlign":"center","backgroundColor":"var(--background)","color":"var(--foreground)"},"children":[["$","h1",null,{"className":"brand-name","style":{"fontSize":"4rem","marginBottom":"1rem"},"children":"Coming Soon....."}],["$","p",null,{"style":{"opacity":0.6,"marginBottom":"2rem"},"children":"We are working hard to bring you the best skincare experience."}],["$","$L2",null,{"href":"/","style":{"padding":"0.8rem 2rem","border":"1px solid var(--gold-matte)","color":"var(--gold-matte)","borderRadius":"50px","textDecoration":"none","transition":"var(--transition-smooth)"},"children":"Return Home"}]]}],[["$","script","script-0",{"src":"/_next/static/chunks/7c92e96509cd355e.js","async":true}]],["$","$L3",null,{"children":["$","$4",null,{"name":"Next.MetadataOutlet","children":"$@5"}]}]]}],"loading":null,"isPartial":false}
+5:null

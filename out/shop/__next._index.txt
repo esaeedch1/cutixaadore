@@ -1,0 +1,9 @@
+1:"$Sreact.fragment"
+2:I[59919,["/_next/static/chunks/36181f50d53b6c25.js"],"ThemeProvider"]
+3:I[13865,["/_next/static/chunks/36181f50d53b6c25.js"],"LanguageProvider"]
+4:I[39756,["/_next/static/chunks/ff1a16fafef87110.js","/_next/static/chunks/a2dfb6fc5208ab9b.js"],"default"]
+5:I[37457,["/_next/static/chunks/ff1a16fafef87110.js","/_next/static/chunks/a2dfb6fc5208ab9b.js"],"default"]
+6:I[22016,["/_next/static/chunks/36181f50d53b6c25.js","/_next/static/chunks/7c92e96509cd355e.js"],""]
+7:I[99220,["/_next/static/chunks/36181f50d53b6c25.js"],"FloatingWidgets"]
+:HL["/_next/static/chunks/ee8e8860814cd148.css","style"]
+0:{"buildId":"a3foHF0DpZVqBh3ttpQ63","rsc":["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"/_next/static/chunks/ee8e8860814cd148.css","precedence":"next"}],["$","script","script-0",{"src":"/_next/static/chunks/36181f50d53b6c25.js","async":true}]],["$","html",null,{"lang":"en","children":["$","body",null,{"children":["$","$L2",null,{"children":["$","$L3",null,{"children":[["$","$L4",null,{"parallelRouterKey":"children","template":["$","$L5",null,{}],"notFound":[["$","div",null,{"style":{"display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center","height":"100vh","textAlign":"center","backgroundColor":"var(--background)","color":"var(--foreground)"},"children":[["$","h1",null,{"className":"brand-name","style":{"fontSize":"4rem","marginBottom":"1rem"},"children":"Coming Soon....."}],["$","p",null,{"style":{"opacity":0.6,"marginBottom":"2rem"},"children":"We are working hard to bring you the best skincare experience."}],["$","$L6",null,{"href":"/","style":{"padding":"0.8rem 2rem","border":"1px solid var(--gold-matte)","color":"var(--gold-matte)","borderRadius":"50px","textDecoration":"none","transition":"var(--transition-smooth)"},"children":"Return Home"}]]}],[]]}],["$","$L7",null,{}]]}]}]}]}]]}],"loading":null,"isPartial":false}
