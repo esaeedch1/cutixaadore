@@ -348,46 +348,57 @@ export default function ShopPage() {
         // Load user session
         setCurrentUser(getCurrentUser());
 
-        const loadData = () => {
-            const savedProducts = localStorage.getItem('cutixa_products');
-            const savedCats = localStorage.getItem('cutixa_categories');
+        const loadData = async () => {
+            let parsedProducts = [];
+            let parsedCats = [];
 
-            if (savedCats) {
-                const parsedCats = JSON.parse(savedCats);
-                setNavCategories(parsedCats);
-                (window as any)._allCats = parsedCats;
+            try {
+                const [pRes, cRes] = await Promise.all([
+                    fetch('/api/products').then(r => r.json()),
+                    // If categories are also in db, fetch them here. Otherwise use current local.
+                    Promise.resolve(JSON.parse(localStorage.getItem('cutixa_categories') || '[]'))
+                ]);
+                if (!pRes.error) parsedProducts = pRes;
+                parsedCats = cRes;
+            } catch (e) {
+                console.warn('API error, using local');
             }
 
-            if (savedProducts) {
-                const parsed = JSON.parse(savedProducts);
-                const mapped = parsed
-                    .filter((p: any) => {
-                        if (!p.published || p.visibility?.toLowerCase() !== 'visible') return false;
-                        const checkVis = (list: any[], path: string[]): boolean => {
-                            if (path.length === 0) return true;
-                            const current = list.find(c => c.name === path[0]);
-                            if (!current || !current.isVisible) return false;
-                            return checkVis(current.subcategories || [], path.slice(1));
-                        };
-                        const catData = (window as any)._allCats;
-                        if (catData && p.categories) {
-                            const fullPath = p.categories.split(' > ').map((s: string) => s.trim());
-                            return checkVis(catData, fullPath);
-                        }
-                        return true;
-                    })
-                    .map((p: any) => ({
-                        id: p.id, name: p.name,
-                        category: p.categories?.split(' > ')[0] || 'Uncategorized',
-                        fullCategory: p.categories || 'Uncategorized',
-                        price: p.regularPrice,
-                        image: p.images || 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=400',
-                        description: p.description || ''
-                    }));
-                setProducts(mapped);
-            } else {
-                setProducts([]);
+            if (parsedProducts.length === 0) {
+                parsedProducts = JSON.parse(localStorage.getItem('cutixa_products') || '[]');
             }
+
+            setNavCategories(parsedCats);
+            (window as any)._allCats = parsedCats;
+
+            const mapped = parsedProducts
+                .filter((p: any) => {
+                    const isPublished = p.published === undefined || p.published == 1 || p.published === true;
+                    if (!isPublished || p.visibility?.toLowerCase() !== 'visible') return false;
+
+                    const checkVis = (list: any[], path: string[]): boolean => {
+                        if (path.length === 0) return true;
+                        const current = list.find(c => c.name === path[0]);
+                        if (!current || !current.isVisible) return false;
+                        return checkVis(current.subcategories || [], path.slice(1));
+                    };
+                    const catData = (window as any)._allCats;
+                    const categoriesStr = p.categories || p.category || '';
+                    if (catData && categoriesStr) {
+                        const fullPath = categoriesStr.split(' > ').map((s: string) => s.trim());
+                        return checkVis(catData, fullPath);
+                    }
+                    return true;
+                })
+                .map((p: any) => ({
+                    id: p.id, name: p.name,
+                    category: (p.categories || p.category || 'Uncategorized').split(' > ')[0],
+                    fullCategory: p.categories || p.category || 'Uncategorized',
+                    price: p.regular_price || p.regularPrice || 0,
+                    image: p.images || 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=400',
+                    description: p.description || ''
+                }));
+            setProducts(mapped);
         };
 
         loadData();

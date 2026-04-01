@@ -72,10 +72,30 @@ export default function DashboardOverview() {
         }, ...prev.slice(0, 19)]);
     }, []);
 
-    const loadStats = useCallback(() => {
-        const products = JSON.parse(localStorage.getItem('cutixa_products') || '[]');
-        const orders = JSON.parse(localStorage.getItem('cutixa_orders') || '[]');
-        const invoices = JSON.parse(localStorage.getItem('cutixa_invoices') || '[]');
+    const loadStats = useCallback(async () => {
+        let products = [];
+        let orders = [];
+        let invoices = [];
+
+        try {
+            // Priority: Real API for Hostinger/Production Sync
+            const [pRes, oRes, iRes] = await Promise.all([
+                fetch('/api/products').then(r => r.json()),
+                fetch('/api/orders').then(r => r.json()),
+                fetch('/api/invoices').then(r => r.json())
+            ]);
+
+            if (!pRes.error) products = pRes;
+            if (!oRes.error) orders = oRes;
+            if (!iRes.error) invoices = iRes;
+        } catch (e) {
+            console.warn('API fetch failed, falling back to localStorage');
+        }
+
+        // Fallback for local development if API is not yet set up
+        if (products.length === 0) products = JSON.parse(localStorage.getItem('cutixa_products') || '[]');
+        if (orders.length === 0) orders = JSON.parse(localStorage.getItem('cutixa_orders') || '[]');
+        if (invoices.length === 0) invoices = JSON.parse(localStorage.getItem('cutixa_invoices') || '[]');
 
         const inventoryValue = products.reduce((acc: number, p: any) => acc + (p.regularPrice * p.stock), 0);
         const lowStock = products.filter((p: any) => p.stock <= p.lowStockLimit && p.stock > 0);
