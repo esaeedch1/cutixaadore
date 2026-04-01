@@ -353,13 +353,14 @@ export default function ShopPage() {
             let parsedCats = [];
 
             try {
+                const apiBase = process.env.NODE_ENV === 'production' ? '/api' : '/api';
                 const [pRes, cRes] = await Promise.all([
-                    fetch('/api/products').then(r => r.json()),
+                    fetch(`${apiBase}/products.php`).then(r => r.json()),
                     // If categories are also in db, fetch them here. Otherwise use current local.
                     Promise.resolve(JSON.parse(localStorage.getItem('cutixa_categories') || '[]'))
                 ]);
-                if (!pRes.error) parsedProducts = pRes;
-                parsedCats = cRes;
+                if (pRes && !pRes.error) parsedProducts = Array.isArray(pRes) ? pRes : [];
+                parsedCats = Array.isArray(cRes) ? cRes : [];
             } catch (e) {
                 console.warn('API error, using local');
             }

@@ -78,18 +78,19 @@ export default function DashboardOverview() {
         let invoices = [];
 
         try {
-            // Priority: Real API for Hostinger/Production Sync
+            // Priority: PHP Bridge for Shared Hosting Production
+            const apiBase = process.env.NODE_ENV === 'production' ? '/api' : '/api';
             const [pRes, oRes, iRes] = await Promise.all([
-                fetch('/api/products').then(r => r.json()),
-                fetch('/api/orders').then(r => r.json()),
-                fetch('/api/invoices').then(r => r.json())
+                fetch(`${apiBase}/products.php`).then(r => r.json()),
+                fetch(`${apiBase}/orders.php`).then(r => r.json()),
+                fetch(`${apiBase}/invoices.php`).then(r => r.json())
             ]);
 
-            if (!pRes.error) products = pRes;
-            if (!oRes.error) orders = oRes;
-            if (!iRes.error) invoices = iRes;
+            if (pRes && !pRes.error) products = Array.isArray(pRes) ? pRes : [];
+            if (oRes && !oRes.error) orders = Array.isArray(oRes) ? oRes : [];
+            if (iRes && !iRes.error) invoices = Array.isArray(iRes) ? iRes : [];
         } catch (e) {
-            console.warn('API fetch failed, falling back to localStorage');
+            console.warn('PHP API fallback used');
         }
 
         // Fallback for local development if API is not yet set up
@@ -97,12 +98,13 @@ export default function DashboardOverview() {
         if (orders.length === 0) orders = JSON.parse(localStorage.getItem('cutixa_orders') || '[]');
         if (invoices.length === 0) invoices = JSON.parse(localStorage.getItem('cutixa_invoices') || '[]');
 
-        const inventoryValue = products.reduce((acc: number, p: any) => acc + (p.regularPrice * p.stock), 0);
-        const lowStock = products.filter((p: any) => p.stock <= p.lowStockLimit && p.stock > 0);
-        const outOfStock = products.filter((p: any) => p.stock === 0);
-        const confirmedOrders = orders.filter((o: any) => o.paymentStatus === 'Confirmed');
-        const totalSales = confirmedOrders.reduce((acc: number, o: any) => acc + o.totalAmount, 0);
-        const pendingInvoices = invoices.filter((inv: any) => inv.status === 'Pending').length;
+        // Map field names (products.php returns regular_price)
+        const inventoryValue = products.reduce((acc: number, p: any) => acc + (parseFloat(p.regular_price || p.regularPrice || 0) * (p.stock || 0)), 0);
+        const lowStock = products.filter((p: any) => (p.stock || 0) <= (p.low_stock_limit || p.lowStockLimit || 5) && (p.stock || 0) > 0);
+        const outOfStock = products.filter((p: any) => (p.stock || 0) === 0);
+        const confirmedOrders = orders.filter((o: any) => (o.payment_status || o.paymentStatus) === 'Confirmed');
+        const totalSales = confirmedOrders.reduce((acc: number, o: any) => acc + parseFloat(o.total_amount || o.totalAmount || 0), 0);
+        const pendingInvoices = invoices.filter((inv: any) => (inv.status) === 'Pending').length;
 
         setLowStockAlerts([...lowStock.slice(0, 3), ...outOfStock.slice(0, 2)]);
 
@@ -110,7 +112,7 @@ export default function DashboardOverview() {
             { name: 'Total Products', value: products.length.toString(), icon: Package, change: `${lowStock.length} Low Stock`, color: '#c5a059' },
             { name: 'Inventory Value', value: `PKR ${(inventoryValue / 1000).toFixed(1)}k`, icon: ShoppingBag, change: 'Live Sync', color: '#3b82f6' },
             { name: 'Confirmed Sales', value: `PKR ${(totalSales / 1000).toFixed(1)}k`, icon: TrendingUp, change: `+${confirmedOrders.length} Orders`, color: '#22c55e' },
-            { name: 'Pending Invoices', value: pendingInvoices.toString(), icon: DollarSign, change: `${orders.filter((o: any) => o.status === 'Pending').length} Orders`, color: '#f59e0b' },
+            { name: 'Pending Invoices', value: pendingInvoices.toString(), icon: DollarSign, change: `${orders.filter((o: any) => (o.status) === 'Pending').length} Orders`, color: '#f59e0b' },
         ]);
     }, []);
 
